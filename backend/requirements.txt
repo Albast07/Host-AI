@@ -10,3 +10,4 @@ pysentimiento
 torch
 transformers
 google-generativeai
+dj-database-url==1.2.0
