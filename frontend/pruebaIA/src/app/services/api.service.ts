@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface ChatMessage {
   id: number;
@@ -85,7 +86,7 @@ export interface DashboardData {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = '/api/v1';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
