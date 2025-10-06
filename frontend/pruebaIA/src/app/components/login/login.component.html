@@ -1,0 +1,97 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Iniciar Sesión</h1>
+      <p *ngIf="userType === 'student'">Accede a tu diario emocional</p>
+      <p *ngIf="userType === 'teacher'">Accede al dashboard de seguimiento emocional</p>
+    </div>
+
+    <!-- Mensaje para usuarios ya autenticados -->
+
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Toggle de tipo de usuario -->
+      <div class="form-group user-type-toggle">
+        <label>Tipo de Usuario</label>
+        <div class="toggle-container">
+          <input 
+            type="radio" 
+            id="student" 
+            name="userType" 
+            value="student" 
+            [(ngModel)]="userType"
+            [disabled]="isLoading"
+          />
+          <label for="student" class="toggle-label" [class.active]="userType === 'student'">
+            👨‍🎓 Estudiante
+          </label>
+          
+          <input 
+            type="radio" 
+            id="teacher" 
+            name="userType" 
+            value="teacher" 
+            [(ngModel)]="userType"
+            [disabled]="isLoading"
+          />
+          <label for="teacher" class="toggle-label" [class.active]="userType === 'teacher'">
+            👩‍🏫 Profesor
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          [(ngModel)]="loginData.username"
+          placeholder="Ingresa tu nombre de usuario"
+          required
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="loginData.password"
+          placeholder="Ingresa tu contraseña"
+          required
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="isLoading" class="loading-spinner"></span>
+          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        </button>
+      </div>
+
+      <div class="form-footer">
+        <p *ngIf="userType === 'student'">¿No tienes cuenta? 
+          <a href="#" (click)="goToRegister(); $event.preventDefault()" class="register-link">Regístrate aquí</a>
+        </p>
+        <p *ngIf="userType === 'teacher'">
+          <em>Los profesores deben solicitar sus credenciales al administrador.</em>
+        </p>
+      </div>
+    </form>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="message error-message">
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="message success-message">
+      {{ successMessage }}
+    </div>
+  </div>
+</div>

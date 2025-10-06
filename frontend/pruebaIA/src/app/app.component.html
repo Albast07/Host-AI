@@ -1,0 +1,20 @@
+<nav *ngIf="showNavbar" class="navbar">
+  <div class="nav-container">
+    <h1 class="nav-title">
+      <span *ngIf="!isTeacher()">📖 Diario Emocional IA</span>
+      <span *ngIf="isTeacher()">📊 Dashboard Profesor</span>
+    </h1>
+    <div class="nav-links">
+      <a *ngIf="!isTeacher()" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        ✍️ Mi Diario
+      </a>
+      <a *ngIf="isTeacher()" routerLink="/dashboard" routerLinkActive="active">
+        📊 Dashboard
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content" [class.no-navbar]="!showNavbar">
+  <router-outlet></router-outlet>
+</main>

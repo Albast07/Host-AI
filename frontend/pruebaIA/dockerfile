@@ -1,0 +1,48 @@
+# frontend/pruebaIA/Dockerfile
+FROM node:20 AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Mostrar estructura para debug
+RUN echo "=== ANGULAR BUILD OUTPUT ===" && \
+    find dist -name "*.html" -o -name "*.js" -o -name "*.css" | head -10
+
+FROM nginx:alpine
+
+# Configuración de nginx personalizada
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Limpiar directorio nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copiar archivos de Angular - Angular 17+ usa dist/project-name/browser o dist/project-name
+COPY --from=builder /app/dist /tmp/angular-dist
+
+# Script inteligente para detectar y copiar archivos
+RUN echo "=== DETECTANDO ESTRUCTURA ANGULAR ===" && \
+    if [ -f "/tmp/angular-dist/prueba-ia/browser/index.html" ]; then \
+        echo "Estructura: dist/proyecto/browser/" && \
+        cp -r /tmp/angular-dist/prueba-ia/browser/* /usr/share/nginx/html/; \
+    elif [ -f "/tmp/angular-dist/prueba-ia/index.html" ]; then \
+        echo "Estructura: dist/proyecto/" && \
+        cp -r /tmp/angular-dist/prueba-ia/* /usr/share/nginx/html/; \
+    elif [ -f "/tmp/angular-dist/index.html" ]; then \
+        echo "Estructura: dist/" && \
+        cp -r /tmp/angular-dist/* /usr/share/nginx/html/; \
+    else \
+        echo "ERROR: No se encontró index.html en ninguna ubicación esperada" && \
+        echo "Archivos disponibles:" && \
+        find /tmp/angular-dist -type f | head -20 && \
+        exit 1; \
+    fi && \
+    echo "=== ARCHIVOS EN NGINX ===" && \
+    ls -la /usr/share/nginx/html/ && \
+    echo "=== VERIFICANDO INDEX.HTML ===" && \
+    test -f /usr/share/nginx/html/index.html && echo "✓ index.html encontrado" || (echo "✗ index.html NO encontrado" && exit 1)
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

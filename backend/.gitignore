@@ -1,0 +1,22 @@
+# Entornos Virtuales
+/venv/
+/env/
+
+# Archivos de Python
+__pycache__/
+*.pyc
+
+# Archivos del Editor de Código
+.vscode/
+.idea/
+
+# Archivos de Sistema Operativo
+.DS_Store
+Thumbs.db
+
+# Archivos Sensibles
+.env
+
+# Archivos de Docker
+.dockerignore
+docker-compose.override.yml
