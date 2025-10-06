@@ -11,3 +11,4 @@ django-cors-headers==4.2.0
 # transformers
 google-generativeai
 dj-database-url==1.2.0
+gunicorn==22.0.0
