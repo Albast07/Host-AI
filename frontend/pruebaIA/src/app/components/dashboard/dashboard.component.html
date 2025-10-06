@@ -23,7 +23,7 @@
       <div class="summary-card">
         <div class="card-icon">👥</div>
         <div class="card-content">
-          <h3>{{ dashboardData?.total_users ?? 0 }}</h3>
+          <h3>{{ dashboardData.total_users || 0 }}</h3>
           <p *ngIf="!isTeacher()">Usuario Activo</p>
           <p *ngIf="isTeacher()">Estudiantes Asignados</p>
         </div>
