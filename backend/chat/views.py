@@ -4,11 +4,11 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ChatResponseSerializer
-from pysentimiento import create_analyzer
+# from pysentimiento import create_analyzer  # COMENTADO - Muy pesado para Render free tier
 import google.generativeai as genai
 import os
-from django.db.models import Count, Q
-from datetime import datetime, timedelta
+from django.db.models import Count
+from datetime import timedelta
 from django.utils import timezone
 
 # Configurar Gemini
@@ -17,9 +17,9 @@ genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 # Crear modelo Gemini 2.5 Flash
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# Analizadores de sentimiento/emoción
-emotion_analyzer = create_analyzer(task="emotion", lang="es")
-sentiment_analyzer = create_analyzer(task="sentiment", lang="es")
+# COMENTADO - Analizadores de sentimiento/emoción (muy pesado para plan gratuito)
+# emotion_analyzer = create_analyzer(task="emotion", lang="es")
+# sentiment_analyzer = create_analyzer(task="sentiment", lang="es")
 
 # Diccionarios de traducción
 EMOTION_TRANSLATIONS = {
@@ -54,20 +54,51 @@ class ChatAPIView(APIView):
         }
         return tips.get(emotion, "Reconocer tus emociones es el primer paso del autoconocimiento emocional.")
 
-    def _get_emotional_intensity(self, emotion_scores):
-        """Determina la intensidad emocional"""
-        max_score = max(emotion_scores.values())
-        
-        if max_score > 0.85:
-            return "muy alta"
-        elif max_score > 0.70:
-            return "alta"
-        elif max_score > 0.50:
-            return "moderada"
-        else:
-            return "baja"
+    def _analyze_emotion_with_gemini(self, text):
+        """Usa Gemini para hacer análisis emocional básico"""
+        analysis_prompt = f"""Analiza brevemente el siguiente mensaje de un estudiante y responde SOLO con el formato JSON especificado, sin texto adicional:
 
-    def _build_context_prompt(self, conversation, current_text, emotion_es, sentiment_es, emotion_scores):
+Mensaje: "{text}"
+
+Responde EXACTAMENTE en este formato JSON:
+{{
+  "emotion": "una de: joy, sadness, anger, fear, disgust, surprise, others",
+  "sentiment": "uno de: POS, NEG, NEU",
+  "intensity": "un número entre 0.1 y 1.0"
+}}
+
+No agregues explicaciones, solo el JSON."""
+
+        try:
+            response = model.generate_content(analysis_prompt)
+            result_text = response.text.strip()
+            
+            # Intentar parsear el JSON
+            import json
+            
+            # Limpiar posibles markdown
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
+            
+            analysis = json.loads(result_text)
+            
+            return {
+                'emotion': analysis.get('emotion', 'others'),
+                'sentiment': analysis.get('sentiment', 'NEU'),
+                'intensity': float(analysis.get('intensity', 0.5))
+            }
+        except Exception as e:
+            print(f"Error en análisis con Gemini: {e}")
+            # Valores por defecto si falla
+            return {
+                'emotion': 'others',
+                'sentiment': 'NEU',
+                'intensity': 0.5
+            }
+
+    def _build_context_prompt(self, conversation, current_text, emotion_es, sentiment_es):
         """Construye el prompt educativo con contexto emocional para Gemini"""
         
         # Obtener historial reciente (últimos 7 mensajes)
@@ -92,16 +123,11 @@ MENSAJE ACTUAL DEL ESTUDIANTE:
 "{current_text}"
 
 ANÁLISIS EMOCIONAL DETECTADO:
-- Emoción dominante: {emotion_es}
-- Sentimiento general: {sentiment_es}
-- Intensidad emocional detectada:
-  * Alegría: {emotion_scores.get('joy', 0):.0%}
-  * Tristeza: {emotion_scores.get('sadness', 0):.0%}
-  * Enojo: {emotion_scores.get('anger', 0):.0%}
-  * Miedo: {emotion_scores.get('fear', 0):.0%}
+- Emoción percibida: {emotion_es}
+- Tono general: {sentiment_es}
 
 TU ENFOQUE EDUCATIVO:
-1. **Validar y nombrar emociones**: Ayuda al estudiante a identificar lo que siente ("Noto que puede haber tristeza en lo que compartes...")
+1. **Validar y nombrar emociones**: Ayuda al estudiante a identificar lo que siente ("Percibo que podría haber tristeza en lo que compartes...")
 2. **Preguntas reflexivas**: Haz preguntas que los ayuden a explorar sus emociones:
    - "¿En qué parte de tu cuerpo sientes eso?"
    - "¿Cuándo empezaste a sentirte así?"
@@ -114,7 +140,7 @@ TU ENFOQUE EDUCATIVO:
 7. **Normalizar emociones**: Todas las emociones son válidas, incluso las incómodas
 
 EJEMPLOS DE RESPUESTAS EDUCATIVAS:
-- "Identifico preocupación en tu mensaje. Es totalmente normal sentir ansiedad antes de un examen, especialmente si es importante para ti. ¿Qué parte del examen te genera más inquietud?"
+- "Percibo preocupación en tu mensaje. Es totalmente normal sentir ansiedad antes de un examen, especialmente si es importante para ti. ¿Qué parte del examen te genera más inquietud?"
 - "Veo alegría en lo que compartes, ¿qué crees que provocó ese sentimiento? Reconocer qué nos hace felices es parte del autoconocimiento."
 - "Hay frustración en tu mensaje. Es natural sentirse así cuando algo no sale como esperabas. ¿Cómo se manifiesta físicamente esa frustración en ti?"
 - "Noto tristeza. Esa emoción nos ayuda a procesar decepciones. ¿Desde cuándo te sientes así? ¿Hay algo específico que la desencadenó?"
@@ -123,7 +149,6 @@ NO HAGAS:
 - No minimices las emociones ("no es para tanto", "otros están peor")
 - No des consejos directos no solicitados
 - No uses frases como "deberías" o "tienes que"
-- No menciones los porcentajes del análisis técnico
 - No actúes como terapeuta ni des diagnósticos
 
 Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"""
@@ -176,44 +201,41 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
             sender='user'
         )
 
-        # Realizar análisis emocional
-        emotion_analysis = emotion_analyzer.predict(text)
-        sentiment_analysis = sentiment_analyzer.predict(text)
-
-        # Actualizar mensaje con análisis
-        user_message.dominant_emotion = emotion_analysis.output
-        user_message.emotion_joy_score = emotion_analysis.probas.get('joy', 0.0)
-        user_message.emotion_sadness_score = emotion_analysis.probas.get('sadness', 0.0)
-        user_message.emotion_anger_score = emotion_analysis.probas.get('anger', 0.0)
-        user_message.emotion_fear_score = emotion_analysis.probas.get('fear', 0.0)
-        user_message.emotion_disgust_score = emotion_analysis.probas.get('disgust', 0.0)
-        user_message.emotion_surprise_score = emotion_analysis.probas.get('surprise', 0.0)
-        user_message.emotion_others_score = emotion_analysis.probas.get('others', 0.0)
+        # USAR GEMINI PARA ANÁLISIS EMOCIONAL (en lugar de pysentimiento)
+        gemini_analysis = self._analyze_emotion_with_gemini(text)
         
-        user_message.sentiment = sentiment_analysis.output
-        user_message.sentiment_pos_score = sentiment_analysis.probas.get('POS', 0.0)
-        user_message.sentiment_neg_score = sentiment_analysis.probas.get('NEG', 0.0)
-        user_message.sentiment_neu_score = sentiment_analysis.probas.get('NEU', 0.0)
+        # Asignar valores basados en el análisis de Gemini
+        emotion = gemini_analysis['emotion']
+        sentiment = gemini_analysis['sentiment']
+        intensity = gemini_analysis['intensity']
+        
+        # Actualizar mensaje con análisis
+        user_message.dominant_emotion = emotion
+        user_message.emotion_joy_score = intensity if emotion == 'joy' else 0.0
+        user_message.emotion_sadness_score = intensity if emotion == 'sadness' else 0.0
+        user_message.emotion_anger_score = intensity if emotion == 'anger' else 0.0
+        user_message.emotion_fear_score = intensity if emotion == 'fear' else 0.0
+        user_message.emotion_disgust_score = intensity if emotion == 'disgust' else 0.0
+        user_message.emotion_surprise_score = intensity if emotion == 'surprise' else 0.0
+        user_message.emotion_others_score = intensity if emotion == 'others' else 0.0
+        
+        user_message.sentiment = sentiment
+        user_message.sentiment_pos_score = intensity if sentiment == 'POS' else 0.0
+        user_message.sentiment_neg_score = intensity if sentiment == 'NEG' else 0.0
+        user_message.sentiment_neu_score = intensity if sentiment == 'NEU' else 0.0
         
         user_message.save()
 
         # Traducir resultados
-        dominant_emotion_es = EMOTION_TRANSLATIONS.get(
-            emotion_analysis.output, 
-            emotion_analysis.output
-        )
-        dominant_sentiment_es = SENTIMENT_TRANSLATIONS.get(
-            sentiment_analysis.output, 
-            sentiment_analysis.output
-        )
+        dominant_emotion_es = EMOTION_TRANSLATIONS.get(emotion, emotion)
+        dominant_sentiment_es = SENTIMENT_TRANSLATIONS.get(sentiment, sentiment)
 
         # Generar respuesta educativa con Gemini
         prompt = self._build_context_prompt(
             conversation=conversation,
             current_text=text,
             emotion_es=dominant_emotion_es,
-            sentiment_es=dominant_sentiment_es,
-            emotion_scores=emotion_analysis.probas
+            sentiment_es=dominant_sentiment_es
         )
         
         bot_text = self._generate_gemini_response(prompt)
@@ -231,26 +253,26 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
             "conversation_id": conversation.id,
             "emotional_insight": {
                 "primary_emotion": dominant_emotion_es,
-                "intensity": self._get_emotional_intensity(emotion_analysis.probas),
+                "intensity": "alta" if intensity > 0.7 else "moderada" if intensity > 0.4 else "baja",
                 "educational_tip": self._get_emotion_tip(dominant_emotion_es)
             },
             "user_message_analysis": {
                 "text": text,
                 "sentiment": {
                     "dominant": dominant_sentiment_es,
-                    "Positivo": round(sentiment_analysis.probas.get('POS', 0.0) * 100),
-                    "Negativo": round(sentiment_analysis.probas.get('NEG', 0.0) * 100),
-                    "Neutral": round(sentiment_analysis.probas.get('NEU', 0.0) * 100),
+                    "Positivo": round(intensity * 100) if sentiment == 'POS' else 0,
+                    "Negativo": round(intensity * 100) if sentiment == 'NEG' else 0,
+                    "Neutral": round(intensity * 100) if sentiment == 'NEU' else 0,
                 },
                 "emotions": {
                     "dominant": dominant_emotion_es,
-                    "Alegria": round(emotion_analysis.probas.get('joy', 0.0) * 100),
-                    "Tristeza": round(emotion_analysis.probas.get('sadness', 0.0) * 100),
-                    "Enojo": round(emotion_analysis.probas.get('anger', 0.0) * 100),
-                    "Miedo": round(emotion_analysis.probas.get('fear', 0.0) * 100),
-                    "Disgusto": round(emotion_analysis.probas.get('disgust', 0.0) * 100),
-                    "Sorpresa": round(emotion_analysis.probas.get('surprise', 0.0) * 100),
-                    "Otros": round(emotion_analysis.probas.get('others', 0.0) * 100),
+                    "Alegria": round(intensity * 100) if emotion == 'joy' else 0,
+                    "Tristeza": round(intensity * 100) if emotion == 'sadness' else 0,
+                    "Enojo": round(intensity * 100) if emotion == 'anger' else 0,
+                    "Miedo": round(intensity * 100) if emotion == 'fear' else 0,
+                    "Disgusto": round(intensity * 100) if emotion == 'disgust' else 0,
+                    "Sorpresa": round(intensity * 100) if emotion == 'surprise' else 0,
+                    "Otros": round(intensity * 100) if emotion == 'others' else 0,
                 }
             }
         }
