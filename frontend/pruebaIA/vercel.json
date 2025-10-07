@@ -1,12 +1,11 @@
 {
   "version": 2,
+  "buildCommand": "npm run build -- --configuration production",
+  "outputDirectory": "dist/prueba-ia/browser",
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/prueba-ia",
-  "installCommand": "npm install"
+  ]
 }
