@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-pi&f&mkgc71lh(79(8qtj=)aq@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1', 'classmind-b.onrender.com').split(',')
 
 
 # Application definition
@@ -164,12 +164,23 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:4200').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:4200', 'http://localhost:4200,https://host-ai-sigma.vercel.app' ).split(',')
 
 # configuración para permitir el envío de cookies en solicitudes CORS
 CORS_ALLOW_CREDENTIALS = True
 
+# Métodos HTTP permitidos
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 # configuración de los headers permitidos en las solicitudes CORS
+# Headers permitidos en las solicitudes CORS
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -180,4 +191,10 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'access-control-allow-origin',
+]
+
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'authorization',
 ]
