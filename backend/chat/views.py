@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ChatResponseSerializer
-# from pysentimiento import create_analyzer  # COMENTADO - Muy pesado para Render free tier
+from .emotion_analyzer import EmotionAnalyzer, EMOTION_MAPPING, SENTIMENT_MAPPING
 import google.generativeai as genai
 import os
 from django.db.models import Count
@@ -17,9 +17,8 @@ genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 # Crear modelo Gemini 2.5 Flash
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# COMENTADO - Analizadores de sentimiento/emoción (muy pesado para plan gratuito)
-# emotion_analyzer = create_analyzer(task="emotion", lang="es")
-# sentiment_analyzer = create_analyzer(task="sentiment", lang="es")
+# Crear analizador de emociones (Hugging Face API - pysentimiento)
+emotion_analyzer = EmotionAnalyzer()
 
 # Diccionarios de traducción
 EMOTION_TRANSLATIONS = {
@@ -53,50 +52,6 @@ class ChatAPIView(APIView):
             "neutral": "La calma y la neutralidad también son válidas. No siempre necesitamos emociones intensas."
         }
         return tips.get(emotion, "Reconocer tus emociones es el primer paso del autoconocimiento emocional.")
-
-    def _analyze_emotion_with_gemini(self, text):
-        """Usa Gemini para hacer análisis emocional básico"""
-        analysis_prompt = f"""Analiza brevemente el siguiente mensaje de un estudiante y responde SOLO con el formato JSON especificado, sin texto adicional:
-
-Mensaje: "{text}"
-
-Responde EXACTAMENTE en este formato JSON:
-{{
-  "emotion": "una de: joy, sadness, anger, fear, disgust, surprise, others",
-  "sentiment": "uno de: POS, NEG, NEU",
-  "intensity": "un número entre 0.1 y 1.0"
-}}
-
-No agregues explicaciones, solo el JSON."""
-
-        try:
-            response = model.generate_content(analysis_prompt)
-            result_text = response.text.strip()
-            
-            # Intentar parsear el JSON
-            import json
-            
-            # Limpiar posibles markdown
-            if "```json" in result_text:
-                result_text = result_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in result_text:
-                result_text = result_text.split("```")[1].split("```")[0].strip()
-            
-            analysis = json.loads(result_text)
-            
-            return {
-                'emotion': analysis.get('emotion', 'others'),
-                'sentiment': analysis.get('sentiment', 'NEU'),
-                'intensity': float(analysis.get('intensity', 0.5))
-            }
-        except Exception as e:
-            print(f"Error en análisis con Gemini: {e}")
-            # Valores por defecto si falla
-            return {
-                'emotion': 'others',
-                'sentiment': 'NEU',
-                'intensity': 0.5
-            }
 
     def _build_context_prompt(self, conversation, current_text, emotion_es, sentiment_es):
         """Construye el prompt educativo con contexto emocional para Gemini"""
@@ -201,36 +156,52 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
             sender='user'
         )
 
-        # USAR GEMINI PARA ANÁLISIS EMOCIONAL (en lugar de pysentimiento)
-        gemini_analysis = self._analyze_emotion_with_gemini(text)
+        # ===== USAR HUGGING FACE API (pysentimiento) PARA ANÁLISIS EMOCIONAL =====
+        print(f"🔍 Analizando mensaje con Hugging Face (pysentimiento)...")
+        hf_analysis = emotion_analyzer.analyze_complete(text)
         
-        # Asignar valores basados en el análisis de Gemini
-        emotion = gemini_analysis['emotion']
-        sentiment = gemini_analysis['sentiment']
-        intensity = gemini_analysis['intensity']
+        # Extraer resultados del análisis
+        emotion_data = hf_analysis['emotion_analysis']
+        sentiment_data = hf_analysis['sentiment_analysis']
         
-        # Actualizar mensaje con análisis
+        emotion = emotion_data['dominant_emotion']
+        emotion_scores = emotion_data['emotions']
+        emotion_confidence = emotion_data['confidence']
+        
+        sentiment = sentiment_data['sentiment']
+        sentiment_scores = sentiment_data['scores']
+        sentiment_confidence = sentiment_data['confidence']
+        
+        intensity_level = hf_analysis['intensity']
+        
+        print(f"✅ Análisis completado: Emoción={emotion}, Sentimiento={sentiment}")
+        
+        # ===== GUARDAR ANÁLISIS EN LA BASE DE DATOS =====
+        # Actualizar mensaje con análisis emocional detallado
         user_message.dominant_emotion = emotion
-        user_message.emotion_joy_score = intensity if emotion == 'joy' else 0.0
-        user_message.emotion_sadness_score = intensity if emotion == 'sadness' else 0.0
-        user_message.emotion_anger_score = intensity if emotion == 'anger' else 0.0
-        user_message.emotion_fear_score = intensity if emotion == 'fear' else 0.0
-        user_message.emotion_disgust_score = intensity if emotion == 'disgust' else 0.0
-        user_message.emotion_surprise_score = intensity if emotion == 'surprise' else 0.0
-        user_message.emotion_others_score = intensity if emotion == 'others' else 0.0
+        user_message.emotion_joy_score = emotion_scores.get('joy', 0.0)
+        user_message.emotion_sadness_score = emotion_scores.get('sadness', 0.0)
+        user_message.emotion_anger_score = emotion_scores.get('anger', 0.0)
+        user_message.emotion_fear_score = emotion_scores.get('fear', 0.0)
+        user_message.emotion_disgust_score = emotion_scores.get('disgust', 0.0)
+        user_message.emotion_surprise_score = emotion_scores.get('surprise', 0.0)
+        user_message.emotion_others_score = emotion_scores.get('others', 0.0)
         
+        # Actualizar sentimiento
         user_message.sentiment = sentiment
-        user_message.sentiment_pos_score = intensity if sentiment == 'POS' else 0.0
-        user_message.sentiment_neg_score = intensity if sentiment == 'NEG' else 0.0
-        user_message.sentiment_neu_score = intensity if sentiment == 'NEU' else 0.0
+        user_message.sentiment_pos_score = sentiment_scores.get('POS', 0.0)
+        user_message.sentiment_neg_score = sentiment_scores.get('NEG', 0.0)
+        user_message.sentiment_neu_score = sentiment_scores.get('NEU', 0.0)
         
         user_message.save()
+        print(f"💾 Análisis guardado en base de datos")
 
-        # Traducir resultados
-        dominant_emotion_es = EMOTION_TRANSLATIONS.get(emotion, emotion)
-        dominant_sentiment_es = SENTIMENT_TRANSLATIONS.get(sentiment, sentiment)
+        # Traducir resultados a español
+        dominant_emotion_es = EMOTION_MAPPING.get(emotion, emotion)
+        dominant_sentiment_es = SENTIMENT_MAPPING.get(sentiment, sentiment)
 
-        # Generar respuesta educativa con Gemini
+        # ===== GENERAR RESPUESTA EMPÁTICA CON GEMINI =====
+        print(f"🤖 Generando respuesta con Gemini...")
         prompt = self._build_context_prompt(
             conversation=conversation,
             current_text=text,
@@ -239,6 +210,7 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         )
         
         bot_text = self._generate_gemini_response(prompt)
+        print(f"✅ Respuesta generada")
         
         # Guardar respuesta del bot
         Message.objects.create(
@@ -247,32 +219,32 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
             sender='bot'
         )
 
-        # Preparar respuesta con insight educativo
+        # ===== PREPARAR RESPUESTA PARA EL FRONTEND =====
         response_data = {
             "bot_response": bot_text,
             "conversation_id": conversation.id,
             "emotional_insight": {
                 "primary_emotion": dominant_emotion_es,
-                "intensity": "alta" if intensity > 0.7 else "moderada" if intensity > 0.4 else "baja",
+                "intensity": intensity_level,
                 "educational_tip": self._get_emotion_tip(dominant_emotion_es)
             },
             "user_message_analysis": {
                 "text": text,
                 "sentiment": {
                     "dominant": dominant_sentiment_es,
-                    "Positivo": round(intensity * 100) if sentiment == 'POS' else 0,
-                    "Negativo": round(intensity * 100) if sentiment == 'NEG' else 0,
-                    "Neutral": round(intensity * 100) if sentiment == 'NEU' else 0,
+                    "Positivo": round(sentiment_scores.get('POS', 0) * 100, 1),
+                    "Negativo": round(sentiment_scores.get('NEG', 0) * 100, 1),
+                    "Neutral": round(sentiment_scores.get('NEU', 0) * 100, 1),
                 },
                 "emotions": {
                     "dominant": dominant_emotion_es,
-                    "Alegria": round(intensity * 100) if emotion == 'joy' else 0,
-                    "Tristeza": round(intensity * 100) if emotion == 'sadness' else 0,
-                    "Enojo": round(intensity * 100) if emotion == 'anger' else 0,
-                    "Miedo": round(intensity * 100) if emotion == 'fear' else 0,
-                    "Disgusto": round(intensity * 100) if emotion == 'disgust' else 0,
-                    "Sorpresa": round(intensity * 100) if emotion == 'surprise' else 0,
-                    "Otros": round(intensity * 100) if emotion == 'others' else 0,
+                    "Alegria": round(emotion_scores.get('joy', 0) * 100, 1),
+                    "Tristeza": round(emotion_scores.get('sadness', 0) * 100, 1),
+                    "Enojo": round(emotion_scores.get('anger', 0) * 100, 1),
+                    "Miedo": round(emotion_scores.get('fear', 0) * 100, 1),
+                    "Disgusto": round(emotion_scores.get('disgust', 0) * 100, 1),
+                    "Sorpresa": round(emotion_scores.get('surprise', 0) * 100, 1),
+                    "Otros": round(emotion_scores.get('others', 0) * 100, 1),
                 }
             }
         }
@@ -309,21 +281,21 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
                     
                     if message.sender == 'user':
                         message_data['analysis'] = {
-                            'dominant_emotion': message.dominant_emotion,
-                            'sentiment': message.sentiment,
+                            'dominant_emotion': EMOTION_MAPPING.get(message.dominant_emotion, message.dominant_emotion),
+                            'sentiment': SENTIMENT_MAPPING.get(message.sentiment, message.sentiment),
                             'emotions': {
-                                'joy': round(message.emotion_joy_score * 100) if message.emotion_joy_score else 0,
-                                'sadness': round(message.emotion_sadness_score * 100) if message.emotion_sadness_score else 0,
-                                'anger': round(message.emotion_anger_score * 100) if message.emotion_anger_score else 0,
-                                'fear': round(message.emotion_fear_score * 100) if message.emotion_fear_score else 0,
-                                'disgust': round(message.emotion_disgust_score * 100) if message.emotion_disgust_score else 0,
-                                'surprise': round(message.emotion_surprise_score * 100) if message.emotion_surprise_score else 0,
-                                'others': round(message.emotion_others_score * 100) if message.emotion_others_score else 0,
+                                'joy': round(message.emotion_joy_score * 100, 1) if message.emotion_joy_score else 0,
+                                'sadness': round(message.emotion_sadness_score * 100, 1) if message.emotion_sadness_score else 0,
+                                'anger': round(message.emotion_anger_score * 100, 1) if message.emotion_anger_score else 0,
+                                'fear': round(message.emotion_fear_score * 100, 1) if message.emotion_fear_score else 0,
+                                'disgust': round(message.emotion_disgust_score * 100, 1) if message.emotion_disgust_score else 0,
+                                'surprise': round(message.emotion_surprise_score * 100, 1) if message.emotion_surprise_score else 0,
+                                'others': round(message.emotion_others_score * 100, 1) if message.emotion_others_score else 0,
                             },
                             'sentiments': {
-                                'positive': round(message.sentiment_pos_score * 100) if message.sentiment_pos_score else 0,
-                                'negative': round(message.sentiment_neg_score * 100) if message.sentiment_neg_score else 0,
-                                'neutral': round(message.sentiment_neu_score * 100) if message.sentiment_neu_score else 0,
+                                'positive': round(message.sentiment_pos_score * 100, 1) if message.sentiment_pos_score else 0,
+                                'negative': round(message.sentiment_neg_score * 100, 1) if message.sentiment_neg_score else 0,
+                                'neutral': round(message.sentiment_neu_score * 100, 1) if message.sentiment_neu_score else 0,
                             }
                         }
                     
@@ -391,14 +363,15 @@ class DashboardStatsView(APIView):
             sentiment_distribution = []
             for item in sentiment_counts:
                 if item['sentiment']:
+                    sentiment_es = SENTIMENT_MAPPING.get(item['sentiment'], item['sentiment'])
                     sentiment_distribution.append({
-                        'sentiment': item['sentiment'],
+                        'sentiment': sentiment_es,
                         'count': item['count'],
                         'percentage': round((item['count'] / total_entries * 100) if total_entries > 0 else 0, 1)
                     })
             
             # Sentimiento más común
-            most_common_sentiment = sentiment_distribution[0]['sentiment'] if sentiment_distribution else 'NEU'
+            most_common_sentiment = sentiment_distribution[0]['sentiment'] if sentiment_distribution else 'neutral'
             most_common_sentiment_percentage = sentiment_distribution[0]['percentage'] if sentiment_distribution else 0
             
             # Top 5 emociones
@@ -409,8 +382,9 @@ class DashboardStatsView(APIView):
             top_emotions = []
             for item in emotion_counts:
                 if item['dominant_emotion']:
+                    emotion_es = EMOTION_MAPPING.get(item['dominant_emotion'], item['dominant_emotion'])
                     top_emotions.append({
-                        'emotion': item['dominant_emotion'],
+                        'emotion': emotion_es,
                         'count': item['count']
                     })
             
@@ -433,7 +407,7 @@ class DashboardStatsView(APIView):
                 return Response({
                     'total_users': 0,
                     'total_entries': 0,
-                    'most_common_sentiment': 'NEU',
+                    'most_common_sentiment': 'neutral',
                     'most_common_sentiment_percentage': 0,
                     'entries_last_week': 0,
                     'sentiment_distribution': [],
@@ -462,14 +436,15 @@ class DashboardStatsView(APIView):
             sentiment_distribution = []
             for item in sentiment_counts:
                 if item['sentiment']:
+                    sentiment_es = SENTIMENT_MAPPING.get(item['sentiment'], item['sentiment'])
                     sentiment_distribution.append({
-                        'sentiment': item['sentiment'],
+                        'sentiment': sentiment_es,
                         'count': item['count'],
                         'percentage': round((item['count'] / total_entries * 100) if total_entries > 0 else 0, 1)
                     })
             
             # Sentimiento más común
-            most_common_sentiment = sentiment_distribution[0]['sentiment'] if sentiment_distribution else 'NEU'
+            most_common_sentiment = sentiment_distribution[0]['sentiment'] if sentiment_distribution else 'neutral'
             most_common_sentiment_percentage = sentiment_distribution[0]['percentage'] if sentiment_distribution else 0
             
             # Top 5 emociones
@@ -480,8 +455,9 @@ class DashboardStatsView(APIView):
             top_emotions = []
             for item in emotion_counts:
                 if item['dominant_emotion']:
+                    emotion_es = EMOTION_MAPPING.get(item['dominant_emotion'], item['dominant_emotion'])
                     top_emotions.append({
-                        'emotion': item['dominant_emotion'],
+                        'emotion': emotion_es,
                         'count': item['count']
                     })
             
@@ -502,6 +478,7 @@ class DashboardStatsView(APIView):
                 ).order_by('-count').first()
                 
                 dominant_sentiment = student_sentiment['sentiment'] if student_sentiment and student_sentiment['sentiment'] else 'NEU'
+                dominant_sentiment_es = SENTIMENT_MAPPING.get(dominant_sentiment, dominant_sentiment)
                 
                 # Emoción dominante del estudiante
                 student_emotion = student_msgs.values('dominant_emotion').annotate(
@@ -509,14 +486,15 @@ class DashboardStatsView(APIView):
                 ).order_by('-count').first()
                 
                 dominant_emotion = student_emotion['dominant_emotion'] if student_emotion and student_emotion['dominant_emotion'] else 'others'
+                dominant_emotion_es = EMOTION_MAPPING.get(dominant_emotion, dominant_emotion)
                 
                 users_stats.append({
                     'user_id': student.id,
                     'username': student.username,
                     'email': student.email,
                     'entries_count': entries_count,
-                    'dominant_sentiment': dominant_sentiment,
-                    'dominant_emotion': dominant_emotion
+                    'dominant_sentiment': dominant_sentiment_es,
+                    'dominant_emotion': dominant_emotion_es
                 })
             
             return Response({
