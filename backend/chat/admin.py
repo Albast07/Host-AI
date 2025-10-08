@@ -253,12 +253,12 @@ class MessageAdmin(admin.ModelAdmin):
         if obj.sender == 'user':
             return format_html(
                 '<span style="background-color: #007bff; color: white; '
-                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">👤 Usuario</span>'
+                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">Usuario</span>'
             )
         else:
             return format_html(
                 '<span style="background-color: #6c757d; color: white; '
-                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">🤖 Bot</span>'
+                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">Bot</span>'
             )
     
     @admin.display(description='Mensaje')
