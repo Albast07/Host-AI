@@ -1,1 +1,1 @@
-# Archivo vacío necesario para que Python reconozca esto como un paquete
+# Este archivo hace que Django reconozca este directorio como un módulo de Python
