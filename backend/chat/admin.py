@@ -66,7 +66,7 @@ class ConversationAdmin(admin.ModelAdmin):
         else:
             return format_html(
                 '<span style="background-color: #007bff; color: white; '
-                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">🎓 Estudiante</span>'
+                'padding: 2px 8px; border-radius: 3px; font-size: 11px;">Estudiante</span>'
             )
     
     @admin.display(description='Fecha de Inicio', ordering='start_time')

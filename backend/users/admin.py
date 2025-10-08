@@ -100,17 +100,15 @@ class CustomUserAdmin(UserAdmin):
         """Muestra el rol con un badge de color"""
         if obj.role == 'teacher':
             color = '#28a745'  # Verde
-            icon = '👨‍🏫'
             text = 'Profesor'
         else:
             color = '#007bff'  # Azul
-            icon = '🎓'
             text = 'Estudiante'
         
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; '
             'border-radius: 3px; font-weight: bold;">{} {}</span>',
-            color, icon, text
+            color, text
         )
     
     @admin.display(description='Nombre Completo')
@@ -149,25 +147,25 @@ class CustomUserAdmin(UserAdmin):
     
     # --- ACCIONES PERSONALIZADAS ---
     
-    @admin.action(description='✅ Activar usuarios seleccionados')
+    @admin.action(description='Activar usuarios seleccionados')
     def activate_users(self, request, queryset):
         """Activa los usuarios seleccionados"""
         updated = queryset.update(is_active=True)
         self.message_user(request, f'{updated} usuario(s) activado(s) exitosamente.')
     
-    @admin.action(description='❌ Desactivar usuarios seleccionados')
+    @admin.action(description='Desactivar usuarios seleccionados')
     def deactivate_users(self, request, queryset):
         """Desactiva los usuarios seleccionados"""
         updated = queryset.update(is_active=False)
         self.message_user(request, f'{updated} usuario(s) desactivado(s) exitosamente.')
     
-    @admin.action(description='👨‍🏫 Convertir a Profesores')
+    @admin.action(description='Convertir a Profesores')
     def make_teachers(self, request, queryset):
         """Convierte los usuarios seleccionados en profesores"""
         updated = queryset.update(role='teacher')
         self.message_user(request, f'{updated} usuario(s) convertido(s) a profesor(es).')
     
-    @admin.action(description='🎓 Convertir a Estudiantes')
+    @admin.action(description='Convertir a Estudiantes')
     def make_students(self, request, queryset):
         """Convierte los usuarios seleccionados en estudiantes"""
         # Limpiar estudiantes asignados si tenían
