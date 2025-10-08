@@ -122,7 +122,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Lee la variable DATABASE_URL del entorno de Render
-        default=os.environ.get('DATABASE_URL')
+        default=os.environ.get('DATABASE_URL'),
+        engine='django.db.backends.postgresql'
     )
 }
 
