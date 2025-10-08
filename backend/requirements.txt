@@ -10,3 +10,4 @@ google-generativeai
 dj-database-url==1.2.0
 gunicorn==22.0.0
 whitenoise==6.6.0
+requests==2.32.3
