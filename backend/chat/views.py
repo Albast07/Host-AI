@@ -157,7 +157,7 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         )
 
         # ===== USAR HUGGING FACE API (pysentimiento) PARA ANÁLISIS EMOCIONAL =====
-        print(f"🔍 Analizando mensaje con Hugging Face (pysentimiento)...")
+        print(f"Analizando mensaje con Hugging Face (pysentimiento)...")
         hf_analysis = emotion_analyzer.analyze_complete(text)
         
         # Extraer resultados del análisis
@@ -174,7 +174,7 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         
         intensity_level = hf_analysis['intensity']
         
-        print(f"✅ Análisis completado: Emoción={emotion}, Sentimiento={sentiment}")
+        print(f"Análisis completado: Emoción={emotion}, Sentimiento={sentiment}")
         
         # ===== GUARDAR ANÁLISIS EN LA BASE DE DATOS =====
         # Actualizar mensaje con análisis emocional detallado
@@ -194,14 +194,14 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         user_message.sentiment_neu_score = sentiment_scores.get('NEU', 0.0)
         
         user_message.save()
-        print(f"💾 Análisis guardado en base de datos")
+        print(f"Análisis guardado en base de datos")
 
         # Traducir resultados a español
         dominant_emotion_es = EMOTION_MAPPING.get(emotion, emotion)
         dominant_sentiment_es = SENTIMENT_MAPPING.get(sentiment, sentiment)
 
         # ===== GENERAR RESPUESTA EMPÁTICA CON GEMINI =====
-        print(f"🤖 Generando respuesta con Gemini...")
+        print(f"Generando respuesta con Gemini...")
         prompt = self._build_context_prompt(
             conversation=conversation,
             current_text=text,
@@ -210,7 +210,7 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         )
         
         bot_text = self._generate_gemini_response(prompt)
-        print(f"✅ Respuesta generada")
+        print(f"Respuesta generada")
         
         # Guardar respuesta del bot
         Message.objects.create(
