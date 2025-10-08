@@ -17,21 +17,21 @@ class ChatResponseSerializer(serializers.Serializer):
 
         class SentimentSerializer(serializers.Serializer):
             dominant = serializers.CharField()
-            Positivo = serializers.IntegerField()
-            Negativo = serializers.IntegerField()
-            Neutral = serializers.IntegerField()
+            Positivo = serializers.FloatField()  
+            Negativo = serializers.FloatField()  
+            Neutral = serializers.FloatField()   
 
         sentiment = SentimentSerializer()
 
         class EmotionSerializer(serializers.Serializer):
             dominant = serializers.CharField()
-            Alegria = serializers.IntegerField()
-            Tristeza = serializers.IntegerField()
-            Enojo = serializers.IntegerField()
-            Miedo = serializers.IntegerField()
-            Disgusto = serializers.IntegerField()
-            Sorpresa = serializers.IntegerField()
-            Otros = serializers.IntegerField()
+            Alegria = serializers.FloatField()   
+            Tristeza = serializers.FloatField()  
+            Enojo = serializers.FloatField()     
+            Miedo = serializers.FloatField()     
+            Disgusto = serializers.FloatField()  
+            Sorpresa = serializers.FloatField()  
+            Otros = serializers.FloatField()     
 
         emotions = EmotionSerializer()
 
