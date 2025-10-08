@@ -1,14 +1,14 @@
 services:
   - type: web
     name: backend
-    env: python
+    env: docker
+    dockerfilePath: ./backend/dockerfile
     region: oregon
     plan: free
     buildFilter:
       paths:
         - "backend/**"
-    buildCommand: "pip install -r backend/requirements.txt && python backend/manage.py collectstatic --noinput"
-    startCommand: "gunicorn config.wsgi:application --pythonpath backend"
+    startCommand: "gunicorn config.wsgi:application"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
