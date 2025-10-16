@@ -1,10 +1,25 @@
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .login-container {
   min-height: 100vh;
+  min-width: 100vw;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  overflow: auto;
 }
 
 .login-card {
