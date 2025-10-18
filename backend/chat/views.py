@@ -49,7 +49,10 @@ class ChatAPIView(APIView):
             "miedo": "El miedo nos alerta ante peligros. ¿Es un miedo real o anticipado? Identificarlo ayuda.",
             "disgusto": "El disgusto nos aleja de lo que nos hace daño. ¿Qué límite necesitas establecer?",
             "sorpresa": "La sorpresa nos mantiene alertas ante lo inesperado. ¿Esta sorpresa es agradable o incómoda?",
-            "neutral": "La calma y la neutralidad también son válidas. No siempre necesitamos emociones intensas."
+            "neutral": "La calma y la neutralidad también son válidas. No siempre necesitamos emociones intensas.",
+            # Nuevas emociones de GoEmotions
+            "gratitud": "La gratitud fortalece nuestras relaciones y mejora nuestro bienestar emocional. ¿Qué o quién te hace sentir agradecido?",
+            "orgullo": "El orgullo sano celebra tus logros y esfuerzo. Reconocer tus avances es parte del crecimiento personal.",
         }
         return tips.get(emotion, "Reconocer tus emociones es el primer paso del autoconocimiento emocional.")
 
@@ -156,29 +159,33 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
             sender='user'
         )
 
-        # ===== USAR HUGGING FACE API (pysentimiento) PARA ANÁLISIS EMOCIONAL =====
-        print(f"Analizando mensaje con Hugging Face (pysentimiento)...")
-        hf_analysis = emotion_analyzer.analyze_complete(text)
+        # ===== ANÁLISIS HÍBRIDO: PYSENTIMIENTO + GOEMOTIONS =====
+        print(f"\n[CHAT] Iniciando análisis híbrido del mensaje...")
+        hf_analysis = emotion_analyzer.analyze_complete_hybrid(text)
         
-        # Extraer resultados del análisis
-        emotion_data = hf_analysis['emotion_analysis']
-        sentiment_data = hf_analysis['sentiment_analysis']
+        # Extraer resultados del análisis híbrido
+        pysentimiento_emotion = hf_analysis['pysentimiento_emotion']
+        pysentimiento_sentiment = hf_analysis['pysentimiento_sentiment']
+        goemotions_primary = hf_analysis['goemotions_primary']
+        goemotions_secondary = hf_analysis['goemotions_secondary']
         
-        emotion = emotion_data['dominant_emotion']
-        emotion_scores = emotion_data['emotions']
-        emotion_confidence = emotion_data['confidence']
-        
-        sentiment = sentiment_data['sentiment']
-        sentiment_scores = sentiment_data['scores']
-        sentiment_confidence = sentiment_data['confidence']
-        
+        # Emoción primaria global (puede ser de pysentimiento o goemotions)
+        primary_emotion = hf_analysis['primary_emotion']
+        primary_emotion_source = hf_analysis['primary_emotion_source']
         intensity_level = hf_analysis['intensity']
         
-        print(f"Análisis completado: Emoción={emotion}, Sentimiento={sentiment}")
+        # Para compatibilidad con el prompt (usar la emoción primaria global)
+        emotion = primary_emotion
+        emotion_scores = pysentimiento_emotion['emotions']
+        
+        sentiment = pysentimiento_sentiment['sentiment']
+        sentiment_scores = pysentimiento_sentiment['scores']
+        
+        print(f"[CHAT] Análisis completado: Primaria={primary_emotion} ({primary_emotion_source}), Intensidad={intensity_level}")
         
         # ===== GUARDAR ANÁLISIS EN LA BASE DE DATOS =====
-        # Actualizar mensaje con análisis emocional detallado
-        user_message.dominant_emotion = emotion
+        # Pysentimiento (7 emociones)
+        user_message.dominant_emotion = pysentimiento_emotion['dominant_emotion']
         user_message.emotion_joy_score = emotion_scores.get('joy', 0.0)
         user_message.emotion_sadness_score = emotion_scores.get('sadness', 0.0)
         user_message.emotion_anger_score = emotion_scores.get('anger', 0.0)
@@ -186,6 +193,17 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         user_message.emotion_disgust_score = emotion_scores.get('disgust', 0.0)
         user_message.emotion_surprise_score = emotion_scores.get('surprise', 0.0)
         user_message.emotion_others_score = emotion_scores.get('others', 0.0)
+        
+        # GoEmotions primarias (2 emociones)
+        user_message.emotion_gratitude_score = goemotions_primary.get('gratitude', 0.0)
+        user_message.emotion_pride_score = goemotions_primary.get('pride', 0.0)
+        
+        # GoEmotions secundarias (JSON)
+        user_message.secondary_emotions = goemotions_secondary if goemotions_secondary else {}
+        
+        # Emoción primaria global
+        user_message.primary_emotion = primary_emotion
+        user_message.primary_emotion_source = primary_emotion_source
         
         # Actualizar sentimiento
         user_message.sentiment = sentiment
@@ -220,13 +238,34 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
         )
 
         # ===== PREPARAR RESPUESTA PARA EL FRONTEND =====
+        # Traducir emoción primaria global
+        primary_emotion_es = EMOTION_MAPPING.get(primary_emotion, primary_emotion)
+        dominant_sentiment_es = SENTIMENT_MAPPING.get(sentiment, sentiment)
+        
+        # Top 3 emociones secundarias para mostrar al estudiante
+        top_secondary = sorted(
+            goemotions_secondary.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:3]
+        
+        secondary_emotions_list = [
+            {
+                'emotion': EMOTION_MAPPING.get(emotion, emotion),
+                'score': round(score * 100, 1)
+            }
+            for emotion, score in top_secondary if score > 0.05  # Solo si >5%
+        ]
+        
         response_data = {
             "bot_response": bot_text,
             "conversation_id": conversation.id,
             "emotional_insight": {
-                "primary_emotion": dominant_emotion_es,
+                "primary_emotion": primary_emotion_es,
+                "primary_emotion_source": primary_emotion_source,
                 "intensity": intensity_level,
-                "educational_tip": self._get_emotion_tip(dominant_emotion_es)
+                "educational_tip": self._get_emotion_tip(primary_emotion_es),
+                "secondary_emotions_detected": secondary_emotions_list
             },
             "user_message_analysis": {
                 "text": text,
@@ -236,8 +275,9 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
                     "Negativo": round(sentiment_scores.get('NEG', 0) * 100, 1),
                     "Neutral": round(sentiment_scores.get('NEU', 0) * 100, 1),
                 },
-                "emotions": {
-                    "dominant": dominant_emotion_es,
+                "emotions_primary": {
+                    "source": "pysentimiento",
+                    "dominant": EMOTION_MAPPING.get(pysentimiento_emotion['dominant_emotion'], pysentimiento_emotion['dominant_emotion']),
                     "Alegria": round(emotion_scores.get('joy', 0) * 100, 1),
                     "Tristeza": round(emotion_scores.get('sadness', 0) * 100, 1),
                     "Enojo": round(emotion_scores.get('anger', 0) * 100, 1),
@@ -245,6 +285,10 @@ Responde al estudiante de forma educativa, reflexiva y validando sus emociones:"
                     "Disgusto": round(emotion_scores.get('disgust', 0) * 100, 1),
                     "Sorpresa": round(emotion_scores.get('surprise', 0) * 100, 1),
                     "Otros": round(emotion_scores.get('others', 0) * 100, 1),
+                },
+                "emotions_goemotions_primary": {
+                    "Gratitud": round(goemotions_primary.get('gratitude', 0) * 100, 1),
+                    "Orgullo": round(goemotions_primary.get('pride', 0) * 100, 1),
                 }
             }
         }

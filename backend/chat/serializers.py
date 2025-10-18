@@ -7,8 +7,18 @@ class ChatResponseSerializer(serializers.Serializer):
 
     class EmotionalInsightSerializer(serializers.Serializer):
         primary_emotion = serializers.CharField()
+        primary_emotion_source = serializers.CharField()
         intensity = serializers.CharField()
         educational_tip = serializers.CharField()
+        
+        class SecondaryEmotionSerializer(serializers.Serializer):
+            emotion = serializers.CharField()
+            score = serializers.FloatField()
+        
+        secondary_emotions_detected = serializers.ListField(
+            child=SecondaryEmotionSerializer(),
+            required=False
+        )
 
     emotional_insight = EmotionalInsightSerializer()
 
@@ -23,7 +33,8 @@ class ChatResponseSerializer(serializers.Serializer):
 
         sentiment = SentimentSerializer()
 
-        class EmotionSerializer(serializers.Serializer):
+        class EmotionPrimarySerializer(serializers.Serializer):
+            source = serializers.CharField()
             dominant = serializers.CharField()
             Alegria = serializers.FloatField()   
             Tristeza = serializers.FloatField()  
@@ -33,6 +44,12 @@ class ChatResponseSerializer(serializers.Serializer):
             Sorpresa = serializers.FloatField()  
             Otros = serializers.FloatField()     
 
-        emotions = EmotionSerializer()
+        emotions_primary = EmotionPrimarySerializer()
+        
+        class GoEmotionsPrimarySerializer(serializers.Serializer):
+            Gratitud = serializers.FloatField()
+            Orgullo = serializers.FloatField()
+        
+        emotions_goemotions_primary = GoEmotionsPrimarySerializer()
 
     user_message_analysis = UserMessageAnalysisSerializer()
