@@ -8,7 +8,7 @@
 
     <!-- Mensaje para usuarios ya autenticados -->
 
-    <form (ngSubmit)="onSubmit()" class="login-form">
+  <form (ngSubmit)="onSubmit()" class="login-form" autocomplete="off">
       <!-- Toggle de tipo de usuario -->
       <div class="form-group user-type-toggle">
         <label>Tipo de Usuario</label>
@@ -48,6 +48,9 @@
           [(ngModel)]="loginData.username"
           placeholder="Ingresa tu nombre de usuario"
           required
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
           [disabled]="isLoading"
         />
       </div>
@@ -61,6 +64,9 @@
           [(ngModel)]="loginData.password"
           placeholder="Ingresa tu contraseña"
           required
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
           [disabled]="isLoading"
         />
       </div>
