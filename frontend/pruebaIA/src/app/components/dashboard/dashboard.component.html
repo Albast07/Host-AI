@@ -1,3 +1,13 @@
+<!-- Top navbar replicated so the logout sits in the navbar with dashboard visual style -->
+<header class="top-navbar">
+  <div class="nav-inner">
+    <div class="brand">📖 Diario Emocional IA</div>
+    <div class="nav-actions">
+      <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
+    </div>
+  </div>
+</header>
+
 <div class="dashboard-container">
   <div class="dashboard-header">
     <div class="header-content">
@@ -5,7 +15,7 @@
       <p *ngIf="!isTeacher()">Resumen de tu estado emocional</p>
       <p *ngIf="isTeacher()">Análisis emocional de tus estudiantes asignados</p>
     </div>
-    <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
+    <!-- logout moved to navbar to avoid duplication -->
   </div>
 
   <div class="loading-spinner" *ngIf="isLoading">
