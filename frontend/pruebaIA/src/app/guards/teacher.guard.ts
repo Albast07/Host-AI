@@ -1,29 +1,43 @@
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { filter, map, timeout, catchError, of } from 'rxjs';
 
 export const teacherGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Verificar autenticación
   if (!authService.isAuthenticated()) {
     router.navigate(['/login']);
     return false;
   }
 
-  // Verificar que el usuario sea profesor
-  if (authService.isTeacher()) {
-    return true;
-  }
-
-  // Si es estudiante, redirigir al journal (ruta raíz)
-  if (authService.isStudent()) {
-    router.navigate(['/']);
+  const currentUser = authService.getCurrentUser();
+  if (currentUser) {
+    if (currentUser.role === 'teacher') return true;
+    if (currentUser.role === 'student') {
+      router.navigate(['/']);
+      return false;
+    }
+    router.navigate(['/login']);
     return false;
   }
 
-  // En caso de rol desconocido, redirigir al login
-  router.navigate(['/login']);
-  return false;
+  return authService.currentUser$.pipe(
+    filter((u: any) => u !== null),
+    timeout(5000),
+    map((user: any) => {
+      if (user.role === 'teacher') return true;
+      if (user.role === 'student') {
+        router.navigate(['/']);
+        return false;
+      }
+      router.navigate(['/login']);
+      return false;
+    }),
+    catchError(() => {
+      router.navigate(['/login']);
+      return of(false);
+    })
+  );
 };
