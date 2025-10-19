@@ -42,7 +42,7 @@
       <div class="summary-card">
         <div class="card-icon">📝</div>
         <div class="card-content">
-          <h3>{{ dashboardData.total_users }}</h3>
+          <h3>{{ dashboardData.total_entries || 0 }}</h3>
           <p *ngIf="!isTeacher()">Tus Mensajes</p>
           <p *ngIf="isTeacher()">Mensajes de Estudiantes</p>
         </div>
