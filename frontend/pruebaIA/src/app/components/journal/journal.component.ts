@@ -319,13 +319,22 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     // Return custom name if the user set one
     if (this.journalNames[key]) return this.journalNames[key];
 
-    // Compute a per-user index based on the current conversations array (includes local temps)
-    const idx = this.conversations.findIndex(conv => String(conv.id) === key);
-    if (idx !== -1) {
-      return `Diario #${idx + 1}`;
+    // Provide a stable default name based on the conversation id so list reordering
+    // (for example when creating a new local diary at the front) does not change
+    // the displayed name of other diaries.
+    // If the id is numeric, use it directly; for local temp ids (local-<timestamp>)
+    // use the timestamp suffix to keep it human-readable.
+    if (/^\d+$/.test(key)) {
+      return `Diario #${key}`;
     }
 
-    // Fallback: if not found in current list, return a generic label
+    if (key.startsWith('local-')) {
+      // show last 6 digits of timestamp for brevity
+      const suffix = key.slice(6);
+      return `Diario ${suffix.slice(-6)}`;
+    }
+
+    // Generic fallback
     return `Diario`;
   }
 
