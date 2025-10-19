@@ -3,6 +3,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, DashboardData } from '../../services/api.service';
+import { DashboardService } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
@@ -24,6 +25,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private authService: AuthService,
     private router: Router
+    , private dashboardService: DashboardService
   ) {}
 
   ngOnInit() {
@@ -48,7 +50,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.apiService.getDashboardStats().subscribe({
       next: (data) => {
-        this.dashboardData = data;
+        try {
+          // Normalize/merge any duplicate emotion keys reported by the API
+          this.dashboardData = this.dashboardService.normalizeDashboardData(data as any);
+          try { console.log('🔎 DashboardComponent - dashboardData.top_emotions after normalize:', JSON.parse(JSON.stringify(this.dashboardData?.top_emotions))); } catch(e) { console.log('🔎 dashboardData.top_emotions', this.dashboardData?.top_emotions); }
+        } catch (e) {
+          // Fallback to raw data
+          this.dashboardData = data;
+        }
         this.isLoading = false;
       },
       error: (error) => {

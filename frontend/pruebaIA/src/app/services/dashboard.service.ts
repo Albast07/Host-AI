@@ -240,7 +240,8 @@ export class DashboardService {
       }
 
       if (message.analysis && message.analysis.dominant_emotion) {
-        const emotion = message.analysis.dominant_emotion;
+        const raw = message.analysis.dominant_emotion;
+        const emotion = this.normalizeEmotionKey(raw);
         emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
       }
     });
@@ -324,7 +325,11 @@ export class DashboardService {
     };
   }
 
-  private normalizeDashboardData(data: any): DashboardData {
+  public normalizeDashboardData(data: any): DashboardData {
+    // Debug: log incoming top_emotions if present
+    if (data && data.top_emotions) {
+      try { console.log('🔍 DashboardService.normalizeDashboardData - incoming top_emotions:', JSON.parse(JSON.stringify(data.top_emotions))); } catch(e) { console.log('🔍 incoming top_emotions (could not stringify)', data.top_emotions); }
+    }
     // Asegurarse de que los arrays existan
     const normalizedData: DashboardData = {
       total_users: data.total_users || 0,
@@ -337,7 +342,7 @@ export class DashboardService {
       top_emotions: this.ensureEmotionArray(data.top_emotions || data.emotion_distribution),
       users_stats: this.ensureArray(data.users_stats)
     };
-
+    try { console.log('✅ DashboardService.normalizeDashboardData - normalized top_emotions:', JSON.parse(JSON.stringify(normalizedData.top_emotions))); } catch(e) { console.log('✅ normalized top_emotions (could not stringify)', normalizedData.top_emotions); }
     console.log('Datos normalizados:', normalizedData);
     return normalizedData;
   }
