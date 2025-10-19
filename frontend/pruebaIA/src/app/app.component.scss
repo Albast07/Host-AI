@@ -122,3 +122,26 @@ $border-radius: 8px;
     }
   }
 }
+
+/* Dashboard-style variant for logout to ensure consistent appearance across pages */
+.logout-btn.dashboard-style {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: $white;
+  padding: 0.75rem 1.25rem;
+  border-radius: $border-radius;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
