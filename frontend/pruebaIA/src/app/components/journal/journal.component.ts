@@ -263,8 +263,10 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     // Create a local temporary conversation id and select it without calling the backend.
     const tempId = `local-${Date.now()}`;
   this.localTempIds.push(tempId);
-    this.currentConversationId = tempId as any;
-    this.selectedConversationId = tempId as any;
+    // Use selectConversation so the UI clears messages for a local conversation
+    // (selectConversation will set currentConversationId/selectedConversationId and
+    // reset entries to the welcome message for local temps).
+    this.selectConversation(tempId as any);
 
     // Save the custom name locally (will be migrated to server id after first message)
     if (this.newJournalName.trim()) {
@@ -273,7 +275,7 @@ export class JournalComponent implements OnInit, AfterViewChecked {
 
     // Add the temporary conversation to the UI list immediately (no backend call)
     const localConv = { id: tempId, title: this.getJournalName(tempId), isLocal: true };
-    this.conversations = [localConv, ...this.conversations];
+  this.conversations = [localConv, ...this.conversations];
 
     this.newJournalName = '';
     this.showNewForm = false;
