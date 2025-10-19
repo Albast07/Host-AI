@@ -51,6 +51,8 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
   role: 'student' | 'teacher';
   fecha_de_nacimiento?: string;
   date_joined?: string;
@@ -73,9 +75,9 @@ export interface DashboardData {
     count: number;
   }>;
   users_stats: Array<{
-    user_id: number;
-    username: string;
-    email: string;
+    user_id: number | string;
+    username?: string;
+    email?: string;
     entries_count: number;
     dominant_sentiment: string;
     dominant_emotion: string;
@@ -134,10 +136,20 @@ export class ApiService {
     });
   }
 
+  // Backwards-compatible wrapper used by StudentsService
+  getAssignedStudentsFromBackend(): Observable<User[]> {
+    return this.getAssignedStudents();
+  }
+
   getAllStudents(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/users/available_students/`, {
       headers: this.authService.getAuthHeaders()
     });
+  }
+
+  // Backwards-compatible wrapper used by StudentsService
+  getAllStudentsFromBackend(): Observable<User[]> {
+    return this.getAllStudents();
   }
 
   assignStudent(studentId: number): Observable<{message: string}> {
@@ -145,6 +157,27 @@ export class ApiService {
       { student_id: studentId },
       { headers: this.authService.getAuthHeaders() }
     );
+  }
+
+  // Teacher-specific helpers (used by StudentsService)
+  getStudentConversations(studentId: number): Observable<{conversations: Conversation[]}> {
+    return this.http.get<{conversations: Conversation[]}>(`${this.baseUrl}/chat/?student_id=${studentId}`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  getStudentConversationMessages(studentId: number, conversationId: number): Observable<{
+    conversation_id: number,
+    start_time: string,
+    messages: ChatMessage[]
+  }> {
+    return this.http.get<{
+      conversation_id: number,
+      start_time: string,
+      messages: ChatMessage[]
+    }>(`${this.baseUrl}/chat/?student_id=${studentId}&conversation_id=${conversationId}`, {
+      headers: this.authService.getAuthHeaders()
+    });
   }
 
   // ========== MÉTODO PARA DASHBOARD - AGREGAR ESTO ==========

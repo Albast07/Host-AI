@@ -30,7 +30,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = `${environment.apiUrl}/users`;
+  private baseUrl = `${ environment.apiUrl}/users`;
   private tokenKey = 'auth_token';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
