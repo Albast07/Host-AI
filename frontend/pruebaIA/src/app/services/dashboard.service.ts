@@ -131,9 +131,10 @@ export class DashboardService {
               }
               
               // Analizar emociones
-              if (message.analysis.dominant_emotion) {
-                const emotion = message.analysis.dominant_emotion;
-                emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+                if (message.analysis.dominant_emotion) {
+                  const raw = message.analysis.dominant_emotion;
+                  const emotion = this.normalizeEmotionKey(raw);
+                  emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
               }
             }
           });
@@ -357,22 +358,46 @@ export class DashboardService {
   }
 
   private ensureEmotionArray(value: any): any[] {
-    if (Array.isArray(value)) return value;
-    
-    if (value && typeof value === 'object') {
-      // Convertir objeto {joy: 5, sadness: 3} a array
-      return Object.entries(value).map(([emotion, count]) => ({
-        emotion,
-        count: count as number
-      }));
+    // If it's already an array, normalize and merge entries to avoid duplicates
+    if (Array.isArray(value)) {
+      const merged: { [key: string]: number } = {};
+      value.forEach((item: any) => {
+        const raw = item?.emotion || item?.label || item?.name || '';
+        const key = this.normalizeEmotionKey(raw);
+        const count = Number(item?.count || 0) || 0;
+        merged[key] = (merged[key] || 0) + count;
+      });
+      return Object.entries(merged).map(([emotion, count]) => ({ emotion, count }));
     }
-    
+
+    if (value && typeof value === 'object') {
+      // Convert object {joy: 5, sadness: 3} to array and normalize/merge keys
+      const merged: { [key: string]: number } = {};
+      Object.entries(value).forEach(([emotion, count]) => {
+        const key = this.normalizeEmotionKey(emotion);
+        merged[key] = (merged[key] || 0) + (Number(count as any) || 0);
+      });
+      return Object.entries(merged).map(([emotion, count]) => ({ emotion, count }));
+    }
+
     return [];
   }
 
   private ensureArray(value: any): any[] {
     if (Array.isArray(value)) return value;
     return [];
+  }
+
+  // Normalize emotion keys to avoid duplicates due to casing or accents
+  private normalizeEmotionKey(s: string): string {
+    if (!s) return 'neutral';
+    try {
+      return s.toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+    } catch (e) {
+      // In older runtimes where unicode property escapes might not be supported,
+      // fall back to a simpler normalization.
+      return s.toString().toLowerCase().normalize('NFD').replace(/[^\w\s-]/g, '').trim();
+    }
   }
 
   private generateDashboardFromMessages(allConversationsMessages: any[], userCount: number = 1): DashboardData {
@@ -423,9 +448,10 @@ export class DashboardService {
       }
 
       // Solo usar emociones reales analizadas
-      if (message.analysis && message.analysis.dominant_emotion) {
-        const emotion = message.analysis.dominant_emotion;
-        emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+        if (message.analysis && message.analysis.dominant_emotion) {
+          const raw = message.analysis.dominant_emotion;
+          const emotion = this.normalizeEmotionKey(raw);
+          emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
       }
     });
 

@@ -271,9 +271,13 @@ export class StudentsService {
 
           // Contar emociones reales del análisis
           if (message.analysis.dominant_emotion) {
-            const emotion = message.analysis.dominant_emotion;
-            emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
-          }
+                const raw = message.analysis.dominant_emotion;
+                // reuse simple normalization used elsewhere (lowercase, strip accents)
+                let emotionKey = raw ? raw.toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim() : 'neutral';
+                // fallback for environments without unicode property escapes
+                if (!emotionKey) emotionKey = raw ? raw.toString().toLowerCase().normalize('NFD').replace(/[^\w\s-]/g, '').trim() : 'neutral';
+                emotionCounts[emotionKey] = (emotionCounts[emotionKey] || 0) + 1;
+              }
         }
 
         // Obtener la fecha del último mensaje real
@@ -311,11 +315,12 @@ export class StudentsService {
       (new Date().getTime() - new Date(lastMessageTime).getTime()) < (7 * 24 * 60 * 60 * 1000) : 
       false;
 
+    const displayName = this.getStudentDisplayName(student);
     const assignedStudent: AssignedStudent = {
       id: student.id,
       username: student.username,
-      firstName: student.first_name,
-      lastName: student.last_name,
+      firstName: displayName.firstName,
+      lastName: displayName.lastName,
       email: student.email,
       conversationsCount: conversations.length,
       messagesCount: totalMessages,
