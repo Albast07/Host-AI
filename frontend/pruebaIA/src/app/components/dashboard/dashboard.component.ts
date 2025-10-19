@@ -72,43 +72,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getSentimentEmoji(sentiment: string): string {
+    const s = (sentiment || '').toString().toUpperCase();
     const emojis: { [key: string]: string } = {
       'POS': '😊',
       'NEG': '😔',
       'NEU': '😐'
     };
-    return emojis[sentiment] || '😐';
+    return emojis[s] || '😐';
   }
 
   getSentimentLabel(sentiment: string): string {
+    const s = (sentiment || '').toString().toUpperCase();
     const labels: { [key: string]: string } = {
       'POS': 'Positivo',
       'NEG': 'Negativo',
       'NEU': 'Neutral'
     };
-    return labels[sentiment] || 'Neutral';
+    return labels[s] || 'Neutral';
   }
 
   getSentimentColor(sentiment: string): string {
+    const s = (sentiment || '').toString().toUpperCase();
     const colors: { [key: string]: string } = {
       'POS': '#48bb78',
       'NEG': '#f56565',
       'NEU': '#a0aec0'
     };
-    return colors[sentiment] || '#a0aec0';
+    return colors[s] || '#a0aec0';
   }
 
   getEmotionIcon(emotion: string): string {
-    const icons: { [key: string]: string } = {
-      'joy': '😄',
-      'sadness': '😢',
-      'anger': '😠',
-      'fear': '😨',
-      'disgust': '🤢',
-      'surprise': '😲',
-      'others': '😐'
+    const normalize = (s: string) => {
+      if (!s) return '';
+      // to lower, trim and remove accents
+      return s.toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
     };
-    return icons[emotion] || '😐';
+    const key = normalize(emotion);
+
+    // map common english and spanish emotion labels to emojis
+    const icons: { [key: string]: string } = {
+      'joy': '😄', 'happy': '😄', 'alegria': '😄', 'alegría': '😄',
+      'sadness': '😢', 'sad': '😢', 'tristeza': '😢',
+      'anger': '😠', 'angry': '😠', 'ira': '😠', 'enojo': '😠',
+      'fear': '😨', 'miedo': '😨',
+      'disgust': '🤢', 'disgusted': '🤢', 'asco': '🤢',
+      'surprise': '😲', 'sorpresa': '😲',
+      'neutral': '😐', 'others': '😐', 'other': '😐'
+    };
+
+    return icons[key] || '😐';
   }
 
   logout() {

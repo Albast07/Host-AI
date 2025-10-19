@@ -468,15 +468,21 @@ export class JournalComponent implements OnInit, AfterViewChecked {
   }
 
   getEmotionIcon(emotion: string): string {
-    switch (emotion.toLowerCase()) {
-      case 'joy': return '😊';
-      case 'sadness': return '😢';
-      case 'anger': return '😠';
-      case 'fear': return '😨';
-      case 'surprise': return '😲';
-      case 'disgust': return '🤢';
-      default: return '😐';
-    }
+    const normalize = (s: string) => {
+      if (!s) return '';
+      return s.toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+    };
+    const key = normalize(emotion);
+    const map: { [k: string]: string } = {
+      'joy': '😊', 'happy': '😊', 'alegria': '😊',
+      'sadness': '😢', 'sad': '😢', 'tristeza': '😢',
+      'anger': '😠', 'angry': '😠', 'ira': '😠', 'enojo': '😠',
+      'fear': '😨', 'miedo': '😨',
+      'surprise': '😲', 'sorpresa': '😲',
+      'disgust': '🤢', 'disgusted': '🤢', 'asco': '🤢',
+      'neutral': '😐', 'others': '😐', 'other': '😐'
+    };
+    return map[key] || '😐';
   }
 
   logout() {
