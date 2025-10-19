@@ -1,25 +1,37 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { OnboardingComponent } from '../onboarding/onboarding.component';
 import { Router } from '@angular/router';
+import { take } from 'rxjs/operators';
 import { ApiService, ChatMessage, ChatResponse } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-journal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, OnboardingComponent],
   templateUrl: './journal.component.html',
   styleUrls: ['./journal.component.scss']
 })
 export class JournalComponent implements OnInit, AfterViewChecked {
+  showOnboarding = false;
   messageText: string = '';
   isLoading: boolean = false;
-  entries: any[] = []; // Mensajes del chat
-  currentConversationId?: number;
+  entries: any[] = [];
+  currentConversationId?: any;
   errorMessage: string = '';
   successMessage: string = '';
-  
+  conversations: any[] = [];
+  selectedConversationId?: any;
+  // allow string keys for local temporary ids
+  journalNames: { [id: string]: string } = {};
+  newJournalName: string = '';
+  showNewForm: boolean = false;
+  // track local temporary conversation ids (strings) created client-side
+  localTempIds: string[] = [];
+  renamingId: any | null = null;
+  renameValue: string = '';
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
 
   constructor(
@@ -29,22 +41,69 @@ export class JournalComponent implements OnInit, AfterViewChecked {
   ) {}
 
   ngOnInit() {
-    // Verificar autenticación
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
-    
-    // Agregar mensaje de bienvenida inicial
     this.entries = [{
       type: 'ai',
       text: '¡Hola! Soy tu asistente de diario emocional. Puedes contarme cómo te sientes hoy, qué pensamientos tienes o cualquier cosa que quieras compartir. Estoy aquí para ayudarte.',
       timestamp: new Date(),
       isWelcome: true
     }];
-    
-    this.loadEntries();
+    this.loadConversations();
+    // Show onboarding once per student (persisted by user id)
+    try {
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser && currentUser.role === 'student') {
+        const seenKey = `onboarding_shown_${currentUser.id}`;
+        const shown = localStorage.getItem(seenKey);
+        if (!shown) {
+          setTimeout(() => this.showOnboarding = true, 200);
+        }
+      }
+    } catch (e) {
+      // ignore if current user not ready yet
+    }
+
+    // Fallback: if user wasn't ready synchronously, listen once for currentUser to load
+    if (!this.showOnboarding) {
+      this.authService.currentUser$.pipe(take(1)).subscribe((user: any) => {
+        try {
+          if (user && user.role === 'student') {
+            const seenKey = `onboarding_shown_${user.id}`;
+            const shown = localStorage.getItem(seenKey);
+            if (!shown) {
+              setTimeout(() => this.showOnboarding = true, 200);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
+    }
   }
+
+  onOnboardingClose() {
+    try {
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser && currentUser.id) {
+        const seenKey = `onboarding_shown_${currentUser.id}`;
+        localStorage.setItem(seenKey, '1');
+      } else {
+        // fallback to a generic key for anonymous/browser-only persistence
+        localStorage.setItem('onboarding_shown_guest', '1');
+      }
+    } catch (e) {
+      localStorage.setItem('onboarding_shown_guest', '1');
+    }
+    this.showOnboarding = false;
+  }
+
+  openOnboarding() {
+    this.showOnboarding = true;
+  }
+// ...resto del código sin cambios...
 
   ngAfterViewChecked() {
     this.scrollToBottom();
@@ -74,32 +133,54 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     });
 
     this.scrollToBottom();
+  const isLocalTemp = typeof this.currentConversationId === 'string' && String(this.currentConversationId).startsWith('local-');
+  const tempSelectedId = isLocalTemp ? String(this.currentConversationId) : undefined;
+  const payload: any = { text: userMessage };
+  if (!isLocalTemp) payload.conversation_id = this.currentConversationId;
 
-    this.apiService.sendMessage({
-      text: userMessage,
-      conversation_id: this.currentConversationId
-    }).subscribe({
+  this.apiService.sendMessage(payload).subscribe({
       next: (response: ChatResponse) => {
         // Reemplazar el mensaje temporal con el real
         const tempIndex = this.entries.findIndex(entry => entry.isTemp);
         if (tempIndex !== -1) {
           this.entries.splice(tempIndex, 1);
         }
-
         // Actualizar el ID de la conversación para futuros mensajes
         this.currentConversationId = response.conversation_id;
-        
+
         console.log(`📊 DEBUG: Nuevo mensaje enviado - Conversación ID: ${response.conversation_id}`);
 
-        // Agregar mensaje del usuario a la interfaz
-        this.entries.push({
-          type: 'user',
-          text: response.user_message_analysis.text,
-          timestamp: new Date(),
-          sentiment: response.user_message_analysis.sentiment,
-          emotions: response.user_message_analysis.emotions,
-          originalData: response
-        });
+        // If this was a local temporary conversation, migrate its metadata (name)
+        // to the server-provided conversation id and remove the temp marker.
+        if (isLocalTemp && tempSelectedId) {
+          if (this.journalNames[tempSelectedId]) {
+            this.journalNames[String(response.conversation_id)] = this.journalNames[tempSelectedId];
+            delete this.journalNames[tempSelectedId];
+          }
+          // remove temp id from tracking
+          this.localTempIds = this.localTempIds.filter(id => id !== tempSelectedId);
+          // Persist names
+          localStorage.setItem('journalNames', JSON.stringify(this.journalNames));
+
+          // Ensure UI selection points to the new server conversation id
+          this.selectedConversationId = response.conversation_id;
+          this.currentConversationId = response.conversation_id;
+
+          // Reload conversations to show the new server conversation in the list
+          this.loadConversations();
+        }
+
+        // Agregar mensaje del usuario a la interfaz (con análisis devuelto)
+        if (response.user_message_analysis) {
+          this.entries.push({
+            type: 'user',
+            text: response.user_message_analysis.text,
+            timestamp: new Date(),
+            sentiment: response.user_message_analysis.sentiment,
+            emotions: response.user_message_analysis.emotions,
+            originalData: response
+          });
+        }
 
         // Agregar respuesta del bot a la interfaz
         this.entries.push({
@@ -134,45 +215,121 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  loadEntries() {
+  loadConversations() {
     this.apiService.getConversations().subscribe({
       next: (response: any) => {
-        console.log('📊 DEBUG: Conversaciones obtenidas:', response);
-        
-        if (response.conversations && response.conversations.length > 0) {
-          console.log(`📊 DEBUG: Total de conversaciones: ${response.conversations.length}`);
-          
-          // Cargar la conversación más reciente (primera en la lista ya viene ordenada por -start_time)
-          const latestConversation = response.conversations[0];
-          
-          console.log(`📊 DEBUG: Conversación más reciente:`, {
-            id: latestConversation.id,
-            start_time: latestConversation.start_time,
-            messages_count: latestConversation.messages_count,
-            last_message: latestConversation.last_message
-          });
-          
-          // Establecer la conversación actual
-          this.currentConversationId = latestConversation.id;
-          
-          // Cargar todos los mensajes de la conversación más reciente
-          this.loadConversationMessages(latestConversation.id);
+  const serverConvs = response.conversations || [];
+  // Ensure we have the latest local journal names before building the list
+  this.loadJournalNames();
+  // Map local temp conversations to the same shape so the UI shows them
+  const localConvs = this.localTempIds.map(id => ({ id, title: this.getJournalName(id), isLocal: true }));
+  // Prefer server-side conversations first so persisted messages (including bot replies)
+  // are shown by default — local temporary journals should not override the default selection.
+  this.conversations = [...serverConvs, ...localConvs];
+        if (this.conversations.length > 0) {
+          // If there is no previously selected conversation or the selection is no longer present,
+          // choose a server conversation by default (so stored history appears). If no server
+          // conversations exist, fall back to the first local conversation.
+          const selectionMissing = !this.selectedConversationId || !this.conversations.some(c => String(c.id) === String(this.selectedConversationId));
+          if (selectionMissing) {
+            const defaultConv = this.conversations.find(c => !c.isLocal) || this.conversations[0];
+            if (defaultConv) this.selectConversation(defaultConv.id);
+          }
         } else {
-          // Si no hay conversaciones, limpiar la interfaz y preparar para nuevo chat
-          console.log('📊 DEBUG: No hay conversaciones previas, iniciando nuevo chat');
+          this.selectedConversationId = undefined;
           this.currentConversationId = undefined;
-          // Mantener solo el mensaje de bienvenida
           this.entries = this.entries.filter(entry => entry.isWelcome);
         }
       },
       error: (error: any) => {
-        console.error('Error cargando conversaciones:', error);
         this.errorMessage = 'Error al cargar el historial.';
       }
     });
   }
 
-  loadConversationMessages(conversationId: number) {
+  selectConversation(conversationId: any) {
+    this.selectedConversationId = conversationId;
+    this.currentConversationId = conversationId;
+    // If it's a local temp conversation, don't call the backend for messages yet
+    if (typeof conversationId === 'string' && String(conversationId).startsWith('local-')) {
+      const welcomeMessage = this.entries.find((entry: any) => entry.isWelcome);
+      this.entries = welcomeMessage ? [welcomeMessage] : [];
+      return;
+    }
+    this.loadConversationMessages(conversationId);
+  }
+
+  createNewJournal() {
+    // Create a local temporary conversation id and select it without calling the backend.
+    const tempId = `local-${Date.now()}`;
+  this.localTempIds.push(tempId);
+    this.currentConversationId = tempId as any;
+    this.selectedConversationId = tempId as any;
+
+    // Save the custom name locally (will be migrated to server id after first message)
+    if (this.newJournalName.trim()) {
+      this.saveJournalName(tempId as any, this.newJournalName.trim());
+    }
+
+    // Add the temporary conversation to the UI list immediately (no backend call)
+    const localConv = { id: tempId, title: this.getJournalName(tempId), isLocal: true };
+    this.conversations = [localConv, ...this.conversations];
+
+    this.newJournalName = '';
+    this.showNewForm = false;
+  }
+
+  openNewJournalForm() {
+    this.showNewForm = true;
+  }
+
+  cancelNewJournalForm() {
+    this.showNewForm = false;
+    this.newJournalName = '';
+  }
+
+  startRenaming(id: any) {
+    this.renamingId = id;
+    this.renameValue = this.getJournalName(id);
+  }
+
+  saveRename(id: any) {
+    const defaultName = this.getJournalName(id);
+    this.saveJournalName(id, this.renameValue.trim() || defaultName);
+    this.renamingId = null;
+    this.renameValue = '';
+  }
+
+  cancelRename() {
+    this.renamingId = null;
+    this.renameValue = '';
+  }
+
+  // --- LocalStorage para nombres personalizados ---
+  loadJournalNames() {
+    const stored = localStorage.getItem('journalNames');
+    this.journalNames = stored ? JSON.parse(stored) : {};
+  }
+  saveJournalName(id: any, name: string) {
+    this.journalNames[String(id)] = name;
+    localStorage.setItem('journalNames', JSON.stringify(this.journalNames));
+  }
+  getJournalName(id: any): string {
+    const key = String(id);
+    // Return custom name if the user set one
+    if (this.journalNames[key]) return this.journalNames[key];
+
+    // Compute a per-user index based on the current conversations array (includes local temps)
+    const idx = this.conversations.findIndex(conv => String(conv.id) === key);
+    if (idx !== -1) {
+      return `Diario #${idx + 1}`;
+    }
+
+    // Fallback: if not found in current list, return a generic label
+    return `Diario`;
+  }
+
+  loadConversationMessages(conversationId: any) {
     console.log(`📊 DEBUG: Cargando mensajes de conversación ID: ${conversationId}`);
     
     this.apiService.getConversationMessages(conversationId).subscribe({
@@ -199,16 +356,35 @@ export class JournalComponent implements OnInit, AfterViewChecked {
         console.log(`📊 DEBUG: Mensajes de usuario: ${userMessages.length}`);
         console.log(`📊 DEBUG: Mensajes del bot: ${botMessages.length}`);
         
-        // Convertir todos los mensajes a entradas de chat
+        // Convertir todos los mensajes a entradas de chat (skipping initial placeholder messages)
         const chatEntries: any[] = [];
-        sortedMessages.forEach((message: any, index: number) => {
-          console.log(`📊 DEBUG: Procesando mensaje ${index + 1}:`, {
-            id: message.id,
-            sender: message.sender,
-            text: message.text.substring(0, 50) + '...',
-            timestamp: message.timestamp
-          });
-          
+            sortedMessages.forEach((message: any, index: number) => {
+              console.log(`📊 DEBUG: Procesando mensaje ${index + 1}:`, {
+                id: message.id,
+                sender: message.sender,
+                text: message.text ? message.text.substring(0, 50) + '...' : '',
+                timestamp: message.timestamp
+              });
+
+              // Known exact user-start placeholders we want to ignore when present in server data.
+              const exactUserPlaceholders = [
+                'Inicio de nuevo journal',
+                'Inicio de nuevo diario',
+                'Inicio de nuevo Journal',
+                'Inicio de nuevo Diario'
+              ];
+              // Skip only exact known user placeholder messages used to create new journals.
+              if (message.sender === 'user' && exactUserPlaceholders.includes(message.text?.trim())) {
+                return;
+              }
+              // Do NOT broadly skip assistant messages. If the server stored an assistant reply it
+              // should be shown. Only skip assistant messages if they exactly match a known
+              // development-simulated string (rare). Keep the check strict.
+              const assistantDevPlaceholders = ['Respuesta simulada', 'Simulada', 'Modo desarrollo'];
+              if (message.sender === 'bot' && assistantDevPlaceholders.includes(message.text?.trim())) {
+                return;
+              }
+
           chatEntries.push({
             type: message.sender === 'user' ? 'user' : 'ai',
             text: message.text,

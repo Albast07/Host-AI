@@ -1,90 +1,125 @@
-<div class="chatbot-container">
-  <div class="chat-header">
-    <div class="chat-title">
-      <h1>💬 Mi Diario Emocional</h1>
-      <p>Comparte tus pensamientos y emociones. La IA te responderá con insights útiles.</p>
-    </div>
-    <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
-  </div>
 
-  <div #chatContainer class="chat-messages">
-    <!-- Todos los mensajes -->
-    <div *ngFor="let entry of entries" 
-         class="message" 
-         [class.user-message]="entry.type === 'user'" 
-         [class.ai-message]="entry.type === 'ai'">
-      
-      <div class="message-avatar">
-        {{ entry.type === 'user' ? '👤' : '🤖' }}
-      </div>
-      
-      <div class="message-content">
-        <div class="message-sender" *ngIf="entry.type === 'ai' && !entry.isWelcome">
-          Asistente IA
-        </div>
-        
-        <div class="message-text">{{ entry.text }}</div>
-        
-        <div class="message-analysis" *ngIf="entry.sentiment && entry.type === 'ai'">
-          <span class="sentiment-badge" 
-                [style.background-color]="getSentimentColor(entry.sentiment.sentiment.label)">
-            {{ entry.sentiment.sentiment.label | uppercase }}
-          </span>
-          <span class="emotion-icon">
-            {{ getEmotionIcon(entry.sentiment.emotion.label) }}
-            {{ entry.sentiment.emotion.label }}
-          </span>
-        </div>
-        
-        <div class="message-time">
-          {{ formatTime(entry.timestamp) }} • {{ formatDate(entry.timestamp) }}
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="entries.length === 1" class="empty-chat">
-      <div class="empty-icon">💭</div>
-      <h3>Aún no hay conversaciones</h3>
-      <p>Envía un mensaje para comenzar tu diario emocional</p>
+<!-- Top navbar (full width) -->
+<header class="top-navbar">
+  <div class="nav-inner">
+    <div class="brand">📖 Diario Emocional IA</div>
+    <div class="nav-actions">
+      <button class="help-btn" title="Cómo usar la app" (click)="openOnboarding()">❓</button>
+      <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
     </div>
   </div>
+</header>
 
-  <!-- Área de entrada de mensajes -->
-  <div class="chat-input-container">
-    <div class="typing-indicator" *ngIf="isLoading">
-      <div class="typing-dots">
-        <span></span>
-        <span></span>
-        <span></span>
+<!-- Onboarding modal (shown once per new student) -->
+<app-onboarding *ngIf="showOnboarding" (close)="onOnboardingClose()"></app-onboarding>
+
+<div class="journal-layout">
+  <!-- Sidebar de diarios -->
+  <aside class="journal-sidebar">
+    <h2>🗂️ Mis Diarios</h2>
+    <div class="journals-list">
+      <div *ngFor="let conv of conversations" class="journal-item" [class.selected]="conv.id === selectedConversationId">
+        <span class="journal-title" (click)="selectConversation(conv.id)">
+          <ng-container *ngIf="renamingId !== conv.id; else renameInput">
+            {{ getJournalName(conv.id) }}
+          </ng-container>
+          <ng-template #renameInput>
+            <input [(ngModel)]="renameValue" (keydown.enter)="saveRename(conv.id)" />
+            <button (click)="saveRename(conv.id)">💾</button>
+            <button (click)="cancelRename()">✖️</button>
+          </ng-template>
+        </span>
+        <button class="rename-btn" (click)="startRenaming(conv.id)">✏️</button>
       </div>
-      <span>La IA está respondiendo...</span>
+    </div>
+      <div class="new-journal-form">
+        <button *ngIf="!showNewForm" (click)="openNewJournalForm()" class="open-create-btn">➕ Crear nuevo diario</button>
+        <div *ngIf="showNewForm" class="create-form">
+          <input [(ngModel)]="newJournalName" placeholder="Nombre del nuevo journal" />
+          <button (click)="createNewJournal()" [disabled]="isLoading || !newJournalName.trim()">Crear</button>
+          <button class="cancel-btn" (click)="cancelNewJournalForm()">Cancelar</button>
+        </div>
+      </div>
+  </aside>
+
+  <!-- Chat principal -->
+  <main class="chatbot-main">
+    <div class="chat-header">
+      <div class="chat-title">
+        <h1>💬 {{ selectedConversationId ? getJournalName(selectedConversationId) : 'Mi Diario Emocional' }}</h1>
+        <p>Comparte tus pensamientos y emociones. La IA te responderá con insights útiles.</p>
+      </div>
     </div>
 
-    <div class="input-wrapper">
-      <textarea 
-        [(ngModel)]="messageText" 
-        placeholder="Escribe tu mensaje aquí..." 
-        rows="1"
-        [disabled]="isLoading"
-        (keydown.enter)="$event.preventDefault(); sendMessage()"
-        class="message-input">
-      </textarea>
-      
-      <button 
-        (click)="sendMessage()" 
-        [disabled]="isLoading || !messageText.trim()"
-        class="send-button">
-        <span *ngIf="!isLoading">↑</span>
-        <span *ngIf="isLoading">⏳</span>
-      </button>
+    <div #chatContainer class="chat-messages">
+      <div *ngFor="let entry of entries" 
+           class="message" 
+           [class.user-message]="entry.type === 'user'" 
+           [class.ai-message]="entry.type === 'ai'">
+        <div class="message-avatar">
+          {{ entry.type === 'user' ? '👤' : '🤖' }}
+        </div>
+        <div class="message-content">
+          <div class="message-sender" *ngIf="entry.type === 'ai' && !entry.isWelcome">
+            Asistente IA
+          </div>
+          <div class="message-text">{{ entry.text }}</div>
+          <div class="message-analysis" *ngIf="entry.sentiment && entry.type === 'ai'">
+            <span class="sentiment-badge" [style.background-color]="getSentimentColor(entry.sentiment.sentiment.label)">
+              {{ entry.sentiment.sentiment.label | uppercase }}
+            </span>
+            <span class="emotion-icon">
+              {{ getEmotionIcon(entry.sentiment.emotion.label) }}
+              {{ entry.sentiment.emotion.label }}
+            </span>
+          </div>
+          <div class="message-time">
+            {{ formatTime(entry.timestamp) }} • {{ formatDate(entry.timestamp) }}
+          </div>
+        </div>
+      </div>
+      <div *ngIf="entries.length === 1" class="empty-chat">
+        <div class="empty-icon">💭</div>
+        <h3>Aún no hay conversaciones</h3>
+        <p>Envía un mensaje para comenzar tu diario emocional</p>
+      </div>
     </div>
 
-    <div *ngIf="errorMessage" class="error-message">
-      ❌ {{ errorMessage }}
+    <div class="chat-input-container">
+      <div class="typing-indicator" *ngIf="isLoading">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>La IA está respondiendo...</span>
+      </div>
+      <div class="input-wrapper">
+        <textarea 
+          [(ngModel)]="messageText" 
+          placeholder="Escribe tu mensaje aquí..." 
+          rows="1"
+          [disabled]="isLoading"
+          (keydown.enter)="$event.preventDefault(); sendMessage()"
+          class="message-input">
+        </textarea>
+        <button 
+          (click)="sendMessage()" 
+          [disabled]="isLoading || !messageText.trim()"
+          class="send-button">
+          <span *ngIf="!isLoading">↑</span>
+          <span *ngIf="isLoading">⏳</span>
+        </button>
+      </div>
+      <div *ngIf="errorMessage" class="error-message">
+        ❌ {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="success-message">
+        ✅ {{ successMessage }}
+      </div>
     </div>
-
-    <div *ngIf="successMessage" class="success-message">
-      ✅ {{ successMessage }}
-    </div>
+  </main>
   </div>
-</div>
+
+  <!-- Overlay shown when new-journal form is open -->
+  <div *ngIf="showNewForm" class="overlay" (click)="cancelNewJournalForm()"></div>
