@@ -32,9 +32,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadDashboardData();
     
     // Auto-refresh cada 30 segundos (30000 ms)
-    this.refreshSubscription = interval(30000).subscribe(() => {
-      this.loadDashboardData();
-    });
+    // this.refreshSubscription = interval(30000).subscribe(() => {
+    //   this.loadDashboardData();
+    // });
   }
 
   ngOnDestroy() {
