@@ -265,3 +265,39 @@ html, body {
     font-size: 24px;
   }
 }
+
+/* Inline brand shown inside the card on small screens */
+.brand-inline {
+  display: none;
+  font-weight: 700;
+  font-size: 18px;
+  color: #333;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  /* hide fixed top-left brand and show inline brand inside the card */
+  .brand { display: none !important; }
+  .brand-inline { display: block; margin-bottom: 12px; }
+  .login-card { padding-top: 18px; }
+}
+
+/* Small text logo in the top-left */
+.brand {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffffff;
+  text-decoration: none;
+  background: rgba(0,0,0,0.12);
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+@media (max-width: 480px) {
+  .brand { top: 10px; left: 10px; font-size: 14px; padding: 5px 8px; }
+}
