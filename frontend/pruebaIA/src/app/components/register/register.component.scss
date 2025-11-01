@@ -1,5 +1,6 @@
 
-html, body {
+.login-global, html, body {
+  box-sizing: border-box;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -7,19 +8,13 @@ html, body {
 
 .register-container {
   min-height: 100vh;
-  min-width: 100vw;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 0;
-  overflow: auto;
+  padding: 20px; /* allow breathing room on smaller screens */
+  position: relative; /* avoid fixed positioning that breaks scrollbars */
 }
 
 .register-card {
@@ -244,12 +239,56 @@ html, body {
   .register-container {
     padding: 10px;
   }
-  
+
   .register-card {
     padding: 30px 20px;
   }
-  
+
   .register-header h1 {
     font-size: 24px;
   }
+}
+
+/* Inline brand shown inside the card on small screens */
+.brand-inline {
+  display: none;
+  font-weight: 700;
+  font-size: 18px;
+  color: #333;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  .brand { display: none !important; }
+  .brand-inline { display: block; margin-bottom: 12px; }
+  .register-card { padding-top: 18px; }
+}
+
+/* Full-viewport background element to ensure gradient spans entire window */
+.page-bg {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  z-index: -1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  pointer-events: none;
+}
+
+/* Small text logo in the top-left */
+.brand {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffffff;
+  text-decoration: none;
+  background: rgba(0,0,0,0.12);
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+@media (max-width: 600px) {
+  .brand { top: 10px; left: 10px; font-size: 14px; padding: 5px 8px; }
 }
