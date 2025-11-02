@@ -264,6 +264,82 @@ class EmotionAnalyzer:
             'intensity': intensity
         }
     
+    def requires_support_resources(self, analysis: Dict, recent_messages: list = None) -> Dict:
+        """
+        Determina si el estudiante necesita recursos de ayuda
+        
+        Criterios de activación:
+        1. Intensidad ALTA + Emociones negativas (tristeza, miedo, enojo)
+        2. Sentimiento negativo > 0.7
+        3. Patrón: 3+ mensajes consecutivos negativos (si se provee historial)
+        
+        Returns:
+            {
+                'needs_support': bool,
+                'support_level': 'low' | 'medium' | 'high',
+                'reason': str,
+                'suggested_resources': list
+            }
+        """
+        primary_emotion = analysis.get('primary_emotion', '')
+        intensity = analysis.get('intensity', 'baja')
+        sentiment_scores = analysis.get('pysentimiento_sentiment', {}).get('scores', {})
+        neg_score = sentiment_scores.get('NEG', 0)
+        
+        # Emociones que activan recursos
+        NEGATIVE_EMOTIONS = ['sadness', 'fear', 'anger', 'grief', 'nervousness', 'disappointment']
+        
+        needs_support = False
+        support_level = 'low'
+        reason = ''
+        
+        # Criterio 1: Intensidad alta + emoción negativa
+        if intensity == 'alta' and primary_emotion in NEGATIVE_EMOTIONS:
+            needs_support = True
+            support_level = 'high'
+            reason = f'Emoción negativa intensa detectada: {primary_emotion}'
+        
+        # Criterio 2: Sentimiento muy negativo
+        elif neg_score > 0.7:
+            needs_support = True
+            support_level = 'high' if neg_score > 0.85 else 'medium'
+            reason = f'Sentimiento muy negativo: {neg_score*100:.0f}%'
+        
+        # Criterio 3: Intensidad media + emoción negativa
+        elif intensity == 'media' and primary_emotion in NEGATIVE_EMOTIONS:
+            needs_support = True
+            support_level = 'medium'
+            reason = f'Emoción negativa moderada: {primary_emotion}'
+        
+        # Criterio 4: Patrón de mensajes negativos consecutivos
+        if recent_messages and len(recent_messages) >= 3:
+            negative_count = sum(1 for msg in recent_messages[-3:] 
+                               if msg.get('sentiment') == 'NEG' or msg.get('primary_emotion') in NEGATIVE_EMOTIONS)
+            
+            if negative_count >= 3:
+                needs_support = True
+                support_level = 'high'
+                reason = 'Patrón de mensajes negativos consecutivos detectado'
+        
+        # Determinar tipo de recursos sugeridos
+        suggested_resources = []
+        if needs_support:
+            if primary_emotion in ['sadness', 'grief']:
+                suggested_resources = ['breathing', 'grounding', 'contact']
+            elif primary_emotion in ['fear', 'nervousness']:
+                suggested_resources = ['breathing', 'grounding', 'activity']
+            elif primary_emotion in ['anger']:
+                suggested_resources = ['breathing', 'activity', 'grounding']
+            else:
+                suggested_resources = ['breathing', 'activity']
+        
+        return {
+            'needs_support': needs_support,
+            'support_level': support_level,
+            'reason': reason,
+            'suggested_resources': suggested_resources
+        }
+    
     def _determine_primary_emotion(self, pysentimiento_result, goemotions_result):
         """
         Determina cuál es la emoción primaria global
