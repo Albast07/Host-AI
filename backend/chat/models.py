@@ -51,6 +51,17 @@ class Message(models.Model):
     sentiment_pos_score = models.FloatField(blank=True, null=True)
     sentiment_neg_score = models.FloatField(blank=True, null=True)
     sentiment_neu_score = models.FloatField(blank=True, null=True)
+    
+    # === SISTEMA DE RECURSOS DE APOYO ===
+    needs_support = models.BooleanField(default=False)  # Si requiere recursos de ayuda
+    support_level = models.CharField(
+        max_length=10,
+        choices=[('low', 'Bajo'), ('medium', 'Medio'), ('high', 'Alto')],
+        blank=True,
+        null=True
+    )
+    support_resources_offered = models.BooleanField(default=False)  # Si se ofrecieron recursos
+    support_resources = models.JSONField(blank=True, null=True)  # Recursos generados por IA
 
     def __str__(self):
         return f"[{self.timestamp.strftime('%Y-%m-%d %H:%M')}] {self.sender}: {self.text[:50]}"
