@@ -145,3 +145,28 @@ $border-radius: 8px;
     transform: translateY(0);
   }
 }
+
+/* Mobile tweaks: remove the Mi Diario link and remove main-content padding so
+   the journal/chat can use full side-to-side width. */
+@media (max-width: 768px) {
+  .nav-mi-diario { display: none; }
+  .main-content {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+  }
+}
+
+/* When journal component requests fullscreen behavior, hide page scrollbar on mobile
+   so only the chat messages area can scroll. */
+@media (max-width: 768px) {
+  /* When a journal requests fullscreen, hide page-level scrolling and force
+     the main content to fill the viewport. This keeps scrolling confined to
+     the chat messages area. */
+  body.journal-fullscreen,
+  body.journal-fullscreen app-root,
+  body.journal-fullscreen .main-content {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+}
