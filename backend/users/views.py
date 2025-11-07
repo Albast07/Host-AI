@@ -4,13 +4,16 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import login, logout
-from .models import CustomUser
+from .models import CustomUser, Course
 from .serializers import (
     UserSerializer, 
     UserRegistrationSerializer, 
     LoginSerializer, 
-    ChangePasswordSerializer
+    ChangePasswordSerializer,
+    CourseSerializer,
+    CourseListSerializer
 )
+from .permissions import IsAdminUser, IsAdminOrTeacher
 
 # ViewSet para manejar las operaciones relacionadas con usuarios
 class UserViewSet(viewsets.ModelViewSet):
@@ -118,6 +121,14 @@ class UserViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Administrador: listar profesores
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
+    def teachers(self, request):
+        """Lista de usuarios con rol 'teacher' (solo admin)."""
+        teachers = CustomUser.objects.filter(role='teacher').order_by('username')
+        serializer = UserSerializer(teachers, many=True)
+        return Response(serializer.data)
+
     # para profesores: obtener lista de sus estudiantes
     @action(detail=False, methods=['get'])
     def my_students(self, request):
@@ -168,3 +179,168 @@ class UserViewSet(viewsets.ModelViewSet):
         all_students = CustomUser.objects.filter(role='student')
         serializer = UserSerializer(all_students, many=True)
         return Response(serializer.data)
+
+
+# ViewSet para manejar operaciones CRUD de Courses
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all().order_by('-start_date')
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CourseListSerializer
+        return CourseSerializer
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            # Solo admins pueden crear, editar o eliminar cursos
+            permission_classes = [IsAdminUser]
+        elif self.action in ['list', 'retrieve']:
+            # Admins y profesores pueden ver cursos
+            permission_classes = [IsAdminOrTeacher]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
+    def list(self, request, *args, **kwargs):
+        """Listar cursos (filtrados según el rol del usuario)"""
+        user = request.user
+        
+        if user.is_admin:
+            # Admin ve todos los cursos
+            queryset = self.get_queryset()
+        elif user.is_teacher:
+            # Profesor solo ve sus cursos asignados
+            queryset = Course.objects.filter(teacher=user).order_by('-start_date')
+        else:
+            return Response({
+                'error': 'No tienes permisos para ver cursos'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def assign_teacher(self, request, pk=None):
+        """Asignar un profesor a un curso (solo admin)"""
+        course = self.get_object()
+        teacher_id = request.data.get('teacher_id')
+        
+        if not teacher_id:
+            return Response({
+                'error': 'teacher_id es requerido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            teacher = CustomUser.objects.get(id=teacher_id, role='teacher')
+            course.teacher = teacher
+            course.save()
+            
+            serializer = CourseSerializer(course)
+            return Response({
+                'message': f'Profesor {teacher.username} asignado exitosamente',
+                'course': serializer.data
+            }, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'error': 'Profesor no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def unassign_teacher(self, request, pk=None):
+        """Desasignar el profesor de un curso (solo admin)."""
+        course = self.get_object()
+        course.teacher = None
+        course.save()
+        return Response({
+            'message': 'Profesor desasignado exitosamente',
+            'course': CourseSerializer(course).data
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminOrTeacher])
+    def add_students(self, request, pk=None):
+        """Agregar estudiantes a un curso (admin o profesor del curso)"""
+        course = self.get_object()
+        user = request.user
+        
+        # Verificar que sea admin o el profesor asignado al curso
+        if not user.is_admin and course.teacher != user:
+            return Response({
+                'error': 'Solo el admin o el profesor asignado pueden agregar estudiantes'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        student_ids = request.data.get('student_ids', [])
+        
+        if not student_ids or not isinstance(student_ids, list):
+            return Response({
+                'error': 'student_ids debe ser una lista de IDs'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        added_students = []
+        errors = []
+        
+        for student_id in student_ids:
+            try:
+                student = CustomUser.objects.get(id=student_id, role='student')
+                course.students.add(student)
+                added_students.append(student.username)
+            except CustomUser.DoesNotExist:
+                errors.append(f'Estudiante con ID {student_id} no encontrado')
+        
+        return Response({
+            'message': f'{len(added_students)} estudiante(s) agregado(s) exitosamente',
+            'added_students': added_students,
+            'errors': errors
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminOrTeacher])
+    def remove_student(self, request, pk=None):
+        """Remover un estudiante de un curso (admin o profesor del curso)"""
+        course = self.get_object()
+        user = request.user
+        
+        # Verificar que sea admin o el profesor asignado al curso
+        if not user.is_admin and course.teacher != user:
+            return Response({
+                'error': 'Solo el admin o el profesor asignado pueden remover estudiantes'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        student_id = request.data.get('student_id')
+        
+        if not student_id:
+            return Response({
+                'error': 'student_id es requerido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            student = CustomUser.objects.get(id=student_id, role='student')
+            course.students.remove(student)
+            
+            return Response({
+                'message': f'Estudiante {student.username} removido exitosamente'
+            }, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'error': 'Estudiante no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['get'], permission_classes=[IsAdminOrTeacher])
+    def students_list(self, request, pk=None):
+        """Ver lista de estudiantes del curso (admin o profesor del curso)"""
+        course = self.get_object()
+        user = request.user
+        
+        # Verificar que sea admin o el profesor asignado al curso
+        if not user.is_admin and course.teacher != user:
+            return Response({
+                'error': 'Solo el admin o el profesor asignado pueden ver los estudiantes'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        students = course.students.all()
+        serializer = UserSerializer(students, many=True)
+        
+        return Response({
+            'course_name': course.name,
+            'course_code': course.code,
+            'total_students': students.count(),
+            'students': serializer.data
+        }, status=status.HTTP_200_OK)
