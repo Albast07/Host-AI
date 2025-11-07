@@ -143,4 +143,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  exportPdf() {
+    if (!this.isTeacher()) return;
+
+    this.apiService.exportDashboardPdf().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // Suggest filename from server or fallback
+        const suggested = `reporte_emocional_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'_')}.pdf`;
+        a.download = suggested;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error exporting PDF:', err);
+        alert('Error al exportar el PDF. Revisa la consola para más detalles.');
+      }
+    });
+  }
 }

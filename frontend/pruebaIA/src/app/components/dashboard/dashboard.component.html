@@ -1,7 +1,7 @@
 <!-- Top navbar replicated so the logout sits in the navbar with dashboard visual style -->
 <header class="top-navbar">
   <div class="nav-inner">
-    <div class="brand">📖 Diario Emocional IA</div>
+    <div class="brand">📖 Classmind | Diario IA</div>
     <div class="nav-actions">
       <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
     </div>
@@ -14,6 +14,11 @@
       <h1>📊 Dashboard de Seguimiento Emocional</h1>
       <p *ngIf="!isTeacher()">Resumen de tu estado emocional</p>
       <p *ngIf="isTeacher()">Análisis emocional de tus estudiantes asignados</p>
+    </div>
+    <div class="header-actions">
+      <!-- Export PDF only visible to teachers -->
+      <!-- Reuse existing logout button style so it matches the dashboard's primary action buttons -->
+      <button *ngIf="isTeacher()" class="logout-btn dashboard-style" (click)="exportPdf()">Exportar a PDF</button>
     </div>
     <!-- logout moved to navbar to avoid duplication -->
   </div>
