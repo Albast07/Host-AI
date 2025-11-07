@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser
+from .models import CustomUser, Course
 
 # Serializador para el modelo de usuario personalizado
 class UserSerializer(serializers.ModelSerializer):
@@ -93,3 +93,29 @@ class ChangePasswordSerializer(serializers.Serializer):
         if attrs['new_password'] != attrs['new_password_confirm']:
             raise serializers.ValidationError("Las contraseñas nuevas no coinciden")
         return attrs
+
+
+# Serializers for Course model
+class CourseSerializer(serializers.ModelSerializer):
+    teacher = UserSerializer(read_only=True)
+    students = UserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = [
+            'id', 'name', 'code', 'description', 'teacher', 'students',
+            'start_date', 'end_date', 'is_active', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CourseListSerializer(serializers.ModelSerializer):
+    student_count = serializers.IntegerField(source='student_count', read_only=True)
+    teacher_name = serializers.CharField(source='teacher_name', read_only=True)
+
+    class Meta:
+        model = Course
+        fields = [
+            'id', 'name', 'code', 'teacher_name', 'student_count',
+            'start_date', 'end_date', 'is_active'
+        ]
