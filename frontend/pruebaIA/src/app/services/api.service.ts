@@ -187,4 +187,12 @@ export class ApiService {
       headers: this.authService.getAuthHeaders()
     });
   }
+
+  // Export dashboard as PDF (binary blob)
+  exportDashboardPdf(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/chat/dashboard/export-pdf/`, {
+      headers: this.authService.getAuthHeaders(),
+      responseType: 'blob'
+    }) as Observable<Blob>;
+  }
 }
