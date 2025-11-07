@@ -90,6 +90,20 @@
   align-items: center;
 }
 
+/* Mobile quick create button inside the sidebar */
+.mobile-create-btn {
+  display: none;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #667eea;
+  color: white;
+  border: none;
+  font-weight: 600;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
 .new-journal-form input {
   flex: 1 1 auto;
   padding: 8px 10px;
@@ -167,6 +181,18 @@
   align-items: center;
 }
 
+/* Mobile journals button (hidden on desktop) */
+.top-navbar .mobile-journals-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
 .top-navbar .brand {
   color: white;
   font-weight: 800;
@@ -174,6 +200,9 @@
   line-height: 1;
   letter-spacing: 0.2px;
 }
+
+/* By default hide the mobile-specific brand label; show only on small screens */
+.brand.mobile-brand { display: none; }
 
 .top-navbar .logout-btn {
   background: rgba(255,255,255,0.12);
@@ -525,6 +554,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .top-navbar .mobile-journals-btn { display: inline-flex; }
   .chatbot-container {
     height: 100vh;
     border-radius: 0;
@@ -548,13 +578,152 @@
     }
 
     /* Slightly reduce the navbar brand size on small screens */
-    .top-navbar .brand {
-      font-size: 1.15rem;
-    }
+      .top-navbar .brand {
+        font-size: 1.15rem;
+      }
+      /* Swap brand content: hide desktop title, show compact diary name */
+      .brand.desktop-brand { display: none; }
+      .brand.mobile-brand { display: block; }
   }
   
   .chat-messages {
     padding: 16px;
+  }
+
+  /* Make the diario/chat area occupy the whole mobile viewport and remove
+     the previous host offset so there's no extra whitespace. */
+  :host {
+    height: 100vh; /* full viewport height on mobile */
+    overflow: hidden;
+  }
+
+  .journal-layout {
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    grid-template-columns: 1fr; /* hide sidebar area in grid flow */
+  }
+
+  /* Reduce navbar height slightly on mobile to save vertical space */
+  .top-navbar { height: 56px; }
+  .top-navbar .nav-inner { padding: 0 12px; }
+
+  /* Hide journal name and description on mobile to maximize chat area */
+  .chat-header .chat-title h1,
+  .chat-header .chat-title p {
+    display: none !important;
+  }
+
+  /* Allow chatbot main to use all remaining vertical space */
+  .chatbot-main { height: calc(100vh - 56px); padding: 0; }
+
+  /* Slightly reduce chat messages padding on small screens */
+  .chat-messages { padding: 8px 12px; }
+
+  /* On small screens hide sidebar by sliding it off-canvas and reveal it
+     by translating it in when .mobile-open is set. This provides a smooth
+     slide-in animation and avoids layout reflow. */
+  .journal-sidebar {
+    position: fixed;
+    left: 0;
+    top: 56px; /* below reduced navbar */
+    bottom: 0;
+    width: 86%;
+    max-width: 360px;
+    z-index: 160;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.18);
+    background: rgba(255,255,255,0.98);
+    padding: 18px;
+    overflow-y: auto;
+    transform: translateX(-110%);
+    transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms;
+    will-change: transform;
+  }
+
+  .journal-layout.mobile-open .journal-sidebar {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.28);
+    z-index: 150;
+    opacity: 1;
+    transition: opacity 200ms ease;
+  }
+
+  /* show mobile create button inside sidebar when panel is visible */
+  .journal-layout.mobile-open .mobile-create-btn {
+    display: block;
+    position: sticky;
+    top: 8px;
+    z-index: 170;
+  }
+
+  /* Mobile create modal styles */
+  .mobile-create-modal-overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 220;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .mobile-create-modal {
+    width: 100%;
+    max-width: 460px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.24);
+  }
+
+  .mobile-create-modal h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+  }
+
+  .mobile-create-modal input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+    margin-bottom: 12px;
+    font-size: 1rem;
+  }
+
+  .mobile-create-modal .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .mobile-create-modal .create-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .mobile-create-modal .cancel-btn {
+    background: transparent;
+    border: 1px solid #e6e9ef;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
   }
 }
 
@@ -597,4 +766,89 @@
 .top-navbar .help-btn:hover {
   background: rgba(255,255,255,0.12);
   transform: translateY(-2px);
+}
+
+/* Assistant floating button & panel for journal */
+.assistant-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  /* assistant-button uses the global .logout-btn.dashboard-style styles */
+
+  .assistant-panel {
+    width: 320px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: fadeInUp 180ms ease-out;
+
+    .assistant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .assistant-body {
+      padding: 12px 14px;
+      color: #2c3e50;
+      font-size: 0.95rem;
+
+      ul { padding-left: 1rem; margin: 0; }
+      li { margin-bottom: 10px; }
+    }
+
+    .assistant-footer {
+      padding: 8px 14px;
+      background: #f8f9fa;
+      font-size: 0.8rem;
+      color: #7f8c8d;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Global dashboard-style button so floating assistant and other buttons match */
+.logout-btn.dashboard-style {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }

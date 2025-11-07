@@ -2,7 +2,9 @@
 <!-- Top navbar (full width) -->
 <header class="top-navbar">
   <div class="nav-inner">
-    <div class="brand">📖 Diario Emocional IA</div>
+    <button class="mobile-journals-btn" title="Mis diarios" (click)="toggleMobileJournals()">☰</button>
+  <div class="brand desktop-brand">📖 Diario Emocional IA</div>
+  <div class="brand mobile-brand">{{ selectedConversationId ? getJournalName(selectedConversationId) : 'Mi Diario' }}</div>
     <div class="nav-actions">
       <button class="help-btn" title="Cómo usar la app" (click)="openOnboarding()">❓</button>
       <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
@@ -13,10 +15,13 @@
 <!-- Onboarding modal (shown once per new student) -->
 <app-onboarding *ngIf="showOnboarding" (close)="onOnboardingClose()"></app-onboarding>
 
-<div class="journal-layout">
+<div class="journal-layout" [class.mobile-open]="showMobileJournals">
   <!-- Sidebar de diarios -->
   <aside class="journal-sidebar">
     <h2>🗂️ Mis Diarios</h2>
+    <!-- Mobile-only quick create button so users can add a new diary without
+         expanding any hidden controls. Visible inside the slide-in panel. -->
+  <button class="mobile-create-btn" (click)="openMobileCreate()">➕ Crear diario</button>
     <div class="journals-list">
       <div *ngFor="let conv of conversations" class="journal-item" [class.selected]="conv.id === selectedConversationId">
         <span class="journal-title" (click)="selectConversation(conv.id)">
@@ -41,6 +46,21 @@
         </div>
       </div>
   </aside>
+
+  <!-- Mobile overlay shown when sidebar is open on small screens -->
+  <div *ngIf="showMobileJournals" class="mobile-overlay" (click)="toggleMobileJournals()"></div>
+
+  <!-- Mobile create modal -->
+  <div *ngIf="showMobileCreateModal" class="mobile-create-modal-overlay" (click)="closeMobileCreate()">
+    <div class="mobile-create-modal" (click)="$event.stopPropagation()">
+      <h3>Crear nuevo diario</h3>
+      <input type="text" [(ngModel)]="newJournalName" placeholder="Nombre del nuevo diario" />
+      <div class="modal-actions">
+        <button class="create-btn" (click)="createNewJournal(); closeMobileCreate()" [disabled]="!newJournalName.trim()">Crear</button>
+        <button class="cancel-btn" (click)="closeMobileCreate()">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Chat principal -->
   <main class="chatbot-main">
@@ -123,3 +143,24 @@
 
   <!-- Overlay shown when new-journal form is open -->
   <div *ngIf="showNewForm" class="overlay" (click)="cancelNewJournalForm()"></div>
+
+  <!-- Assistant suggestions floating button (students) -->
+  <div class="assistant-container">
+    <button class="logout-btn dashboard-style assistant-button" (click)="toggleAssistant()">Sugerencias</button>
+
+    <div class="assistant-panel" *ngIf="showAssistant">
+      <div class="assistant-header">
+        <strong>Asistente de Sugerencias</strong>
+        <button class="close-btn" (click)="toggleAssistant()">✕</button>
+      </div>
+      <div class="assistant-body">
+        <p *ngIf="!suggestions || suggestions.length === 0">No hay sugerencias disponibles.</p>
+        <ul *ngIf="suggestions && suggestions.length">
+          <li *ngFor="let s of suggestions">{{ s }}</li>
+        </ul>
+      </div>
+      <div class="assistant-footer">
+        <small>Basado en tus últimos mensajes y los tips del asistente.</small>
+      </div>
+    </div>
+  </div>

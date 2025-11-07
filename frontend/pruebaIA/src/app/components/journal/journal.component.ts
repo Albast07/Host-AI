@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewChecked, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { OnboardingComponent } from '../onboarding/onboarding.component';
@@ -19,6 +19,10 @@ export class JournalComponent implements OnInit, AfterViewChecked {
   messageText: string = '';
   isLoading: boolean = false;
   entries: any[] = [];
+  showAssistant: boolean = false;
+  suggestions: string[] = [];
+  showMobileJournals: boolean = false;
+  showMobileCreateModal: boolean = false;
   currentConversationId?: any;
   errorMessage: string = '';
   successMessage: string = '';
@@ -41,6 +45,8 @@ export class JournalComponent implements OnInit, AfterViewChecked {
   ) {}
 
   ngOnInit() {
+    // Add a body class so global styles can hide the page scrollbar on mobile
+    try { document.body.classList.add('journal-fullscreen'); } catch(e) {}
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
@@ -82,6 +88,120 @@ export class JournalComponent implements OnInit, AfterViewChecked {
         }
       });
     }
+  }
+
+  ngOnDestroy() {
+    try { document.body.classList.remove('journal-fullscreen'); } catch(e) {}
+  }
+
+  toggleAssistant(): void {
+    this.showAssistant = !this.showAssistant;
+    if (this.showAssistant && (!this.suggestions || this.suggestions.length === 0)) {
+      this.computeAssistantSuggestions();
+    }
+  }
+
+  toggleMobileJournals(): void {
+    this.showMobileJournals = !this.showMobileJournals;
+    // If opening, ensure the chat input doesn't accidentally keep focus
+    if (this.showMobileJournals) {
+      try { (document.activeElement as HTMLElement)?.blur(); } catch(e) {}
+    }
+  }
+
+  openMobileCreate(): void {
+    this.showMobileCreateModal = true;
+    // blur any focused element to avoid mobile keyboard oddities until user taps input
+    try { (document.activeElement as HTMLElement)?.blur(); } catch(e) {}
+  }
+
+  closeMobileCreate(): void {
+    this.showMobileCreateModal = false;
+    this.newJournalName = '';
+  }
+
+  computeAssistantSuggestions(): void {
+    const tipsSet = new Set<string>();
+
+    // 1) Prefer explicit backend tips included in the immediate chat response
+    for (const entry of this.entries) {
+      if (!entry || !entry.originalData) continue;
+
+      try {
+        const ei = entry.originalData.emotional_insight;
+        if (ei && ei.educational_tip && ei.educational_tip.toString().trim()) {
+          tipsSet.add(ei.educational_tip.toString().trim());
+        }
+      } catch (e) { /* ignore */ }
+
+      try {
+        const sr = entry.originalData.support_resources;
+        // support_resources follows serializer: { available, message, educational_insight, techniques }
+        if (sr && sr.available) {
+          if (sr.message && sr.message.toString().trim()) {
+            tipsSet.add(sr.message.toString().trim());
+          }
+          // Add each technique title as a concise suggestion
+          if (Array.isArray(sr.techniques)) {
+            sr.techniques.forEach((t: any) => {
+              if (t && t.title) tipsSet.add(`${t.title}: ${Array.isArray(t.steps) ? t.steps[0] : ''}`);
+            });
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // 2) If still empty, synthesize suggestions from recent message analyses stored in the entries
+    if (tipsSet.size === 0) {
+      // Look at the last N entries for sentiment/emotion cues
+      const N = Math.min(8, this.entries.length);
+      const recent = this.entries.slice(-N);
+      let negCount = 0;
+      const emotionCounts: { [k: string]: number } = {};
+
+      recent.forEach(e => {
+        // try multiple possible shapes: e.sentiment, e.analysis, e.originalData.user_message_analysis
+        try {
+          const sent = e?.sentiment || e?.analysis?.sentiment || e?.originalData?.user_message_analysis?.sentiment?.dominant || e?.originalData?.user_message_analysis?.sentiment?.label;
+          if (sent && typeof sent === 'string' && /neg/i.test(sent)) negCount++;
+        } catch (err) {}
+
+        try {
+          const emo = e?.emotions?.label || e?.analysis?.dominant_emotion || e?.originalData?.user_message_analysis?.emotions_primary?.dominant || e?.originalData?.emotional_insight?.primary_emotion;
+          if (emo && typeof emo === 'string') {
+            const key = emo.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').split(' ')[0];
+            emotionCounts[key] = (emotionCounts[key] || 0) + 1;
+          }
+        } catch (err) {}
+      });
+
+      // If many negatives, suggest grounding + breathing
+      if (negCount >= Math.max(2, Math.floor(N / 3))) {
+        tipsSet.add('Sugerencia: Parece haber un tono negativo persistente — prueba una técnica corta de regulación: Respiración 4‑7‑8 (2–3 min) y la técnica 5‑4‑3‑2‑1 para anclar al presente.');
+      }
+
+      // If a dominant emotion is present, tailor a suggestion
+      const dominant = Object.entries(emotionCounts).sort((a,b) => b[1]-a[1])[0];
+      if (dominant && dominant[0]) {
+        const emo = dominant[0];
+        if (/trist|sad|triste/.test(emo)) {
+          tipsSet.add('Sugerencia: Para tristeza, sugiere respirar y hacer un ejercicio de journaling breve: escribe cómo te sientes en 5 frases.');
+        } else if (/mied|fear/.test(emo)) {
+          tipsSet.add('Sugerencia: Para miedo/ansiedad, identifica un paso pequeño (5 minutos) que puedas hacer ahora para reducir la incertidumbre.');
+        } else if (/enojo|ira|anger/.test(emo)) {
+          tipsSet.add('Sugerencia: Para el enojo, toma 60–90s de pausa y anota la necesidad que no se está cubriendo.');
+        } else if (/alegr|joy|happy/.test(emo)) {
+          tipsSet.add('Sugerencia: Para alegría, registra qué la provocó y planifica repetirlo esta semana.');
+        }
+      }
+    }
+
+    // 3) final fallback
+    if (tipsSet.size === 0) {
+      tipsSet.add('Sugerencia: Anima al estudiante a escribir 3 cosas por las que está agradecido hoy.');
+    }
+
+    this.suggestions = Array.from(tipsSet).slice(0, 6);
   }
 
   onOnboardingClose() {
@@ -254,9 +374,13 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     if (typeof conversationId === 'string' && String(conversationId).startsWith('local-')) {
       const welcomeMessage = this.entries.find((entry: any) => entry.isWelcome);
       this.entries = welcomeMessage ? [welcomeMessage] : [];
+      // Close mobile journals panel when a selection is made
+      this.showMobileJournals = false;
       return;
     }
     this.loadConversationMessages(conversationId);
+    // Close mobile journals panel after loading a conversation on mobile
+    this.showMobileJournals = false;
   }
 
   createNewJournal() {
