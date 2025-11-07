@@ -5,7 +5,7 @@
       <span *ngIf="isTeacher()">📊 Dashboard Profesor</span>
     </h1>
     <div class="nav-links">
-      <a *ngIf="!isTeacher()" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <a *ngIf="!isTeacher()" class="nav-mi-diario" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
         ✍️ Mi Diario
       </a>
       <a *ngIf="isTeacher()" routerLink="/dashboard" routerLinkActive="active">
