@@ -50,3 +50,19 @@ body {
 .mt-1 { margin-top: 0.5rem; }
 .mt-2 { margin-top: 1rem; }
 .mt-3 { margin-top: 1.5rem; }
+
+/* When the journal requests fullscreen on mobile, hide page-level scroll
+   and the global navbar so only the chat history area scrolls. This is
+   implemented globally (not component-scoped) so it can't be overridden. */
+@media (max-width: 768px) {
+  body.journal-fullscreen {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+
+  /* Hide the app-level navbar when journal is fullscreen so the journal's
+     own top-navbar is the only visible header on mobile. */
+  body.journal-fullscreen .navbar {
+    display: none !important;
+  }
+}
