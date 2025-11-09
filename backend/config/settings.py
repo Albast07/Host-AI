@@ -34,7 +34,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv(
     'ALLOWED_HOSTS', 
-    'localhost,127.0.0.1,classmind-b.onrender.com'
+    'localhost,127.0.0.1,host-ai.onrender.com'
 ).split(',')
 
 # Security Settings for Production
