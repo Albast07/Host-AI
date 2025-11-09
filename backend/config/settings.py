@@ -32,10 +32,22 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv(
-    'ALLOWED_HOSTS', 
+raw_allowed_hosts = os.getenv(
+    'ALLOWED_HOSTS',
     'localhost,127.0.0.1,host-ai.onrender.com'
 ).split(',')
+
+ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts if host.strip()]
+
+render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_host and render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_host)
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}"
+    for host in ALLOWED_HOSTS
+    if host not in ('localhost', '127.0.0.1') and not host.startswith('http')
+]
 
 # Security Settings for Production
 if not DEBUG:
