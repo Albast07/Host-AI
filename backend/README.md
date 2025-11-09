@@ -47,7 +47,9 @@ backend/
 │   └── urls.py            # Rutas de chat
 ├── manage.py              # CLI de Django
 ├── requirements.txt       # Dependencias Python
-└── dockerfile             # Imagen Docker
+├── dockerfile             # Imagen Docker
+├── entrypoint.sh          # Script de inicio
+└── .env.example           # Template de variables de entorno
 ```
 
 # Apps del Proyecto
