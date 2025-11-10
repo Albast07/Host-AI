@@ -2,15 +2,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from .models import Conversation, Message
-from .serializers import ChatResponseSerializer
+from .serializers import ChatResponseSerializer, CourseEmotionRecommendationSerializer
 from .emotion_analyzer import EmotionAnalyzer, EMOTION_MAPPING, SENTIMENT_MAPPING
+from .course_recommendation_service import CourseEmotionRecommendationService
 import google.generativeai as genai
 import os
 from django.db.models import Count
 from datetime import timedelta, datetime
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from users.models import Course
 
 # Configurar Gemini
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
@@ -904,3 +907,67 @@ class ExportDashboardPDFView(APIView):
             return Response({
                 'error': f'Error al generar el PDF: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CourseEmotionRecommendationView(APIView):
+    """
+    Permite a profesores y administradores solicitar y consultar recomendaciones socioemocionales
+    generadas por IA para un curso específico.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.recommendation_service = CourseEmotionRecommendationService()
+
+    def get(self, request, course_id):
+        course = self._get_course(course_id)
+        self._ensure_access(request.user, course)
+
+        limit = request.query_params.get('limit')
+        queryset = course.emotion_recommendations.all()
+        if limit:
+            try:
+                limit_value = max(1, min(int(limit), 20))
+                queryset = queryset[:limit_value]
+            except ValueError:
+                pass
+
+        serializer = CourseEmotionRecommendationSerializer(queryset, many=True)
+        return Response({
+            'course': {
+                'id': course.id,
+                'name': course.name,
+                'code': course.code,
+            },
+            'results': serializer.data,
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, course_id):
+        course = self._get_course(course_id)
+        self._ensure_access(request.user, course)
+
+        try:
+            recommendation = self.recommendation_service.generate_recommendation(course, request.user)
+        except ValueError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CourseEmotionRecommendationSerializer(recommendation)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+    def _get_course(self, course_id):
+        try:
+            return Course.objects.get(pk=course_id)
+        except Course.DoesNotExist as exc:
+            raise Http404("Curso no encontrado") from exc
+
+    def _ensure_access(self, user, course: Course):
+        if user.is_admin:
+            return
+        if user.is_teacher and course.teacher_id == user.id:
+            return
+        raise PermissionDenied("Solo el profesor asignado o un administrador pueden consultar estas recomendaciones.")
