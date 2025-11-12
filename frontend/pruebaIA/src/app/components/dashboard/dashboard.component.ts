@@ -67,11 +67,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.courseRecommendations = [];
     this.apiService.getCourseRecommendations(courseId).subscribe({
       next: (data: any) => {
-        // API may return list or single object; normalize to array
+        // API may return either:
+        // - an array of recommendation objects, or
+        // - an object with shape { course: {...}, results: [...] }
+        // Normalize to an array of recommendation objects for the template.
         if (Array.isArray(data)) {
           this.courseRecommendations = data;
         } else if (data) {
-          this.courseRecommendations = [data];
+          if (data.results && Array.isArray(data.results)) {
+            this.courseRecommendations = data.results;
+          } else {
+            // Fallback: wrap single recommendation-like object
+            this.courseRecommendations = [data];
+          }
         }
       },
       error: (err: any) => {

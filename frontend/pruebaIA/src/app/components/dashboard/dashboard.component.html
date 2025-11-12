@@ -204,7 +204,7 @@
               </li>
             </ul>
           </div>
-          <pre class="rec-json" *ngIf="!r.suggestions">{{ r | json }}</pre>
+          <!-- raw JSON removed from UI to keep the recommendations card clean -->
         </div>
       </div>
       <div *ngIf="!courseRecommendations || courseRecommendations.length === 0" class="no-data">
