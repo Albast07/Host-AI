@@ -476,3 +476,78 @@
     }
   }
 }
+
+/* Estilos para controles y recomendaciones del profesor */
+.teacher-recommendation-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+
+  label {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  select {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+  }
+
+  .primary-btn {
+    background: #2f9cf0;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+}
+
+/* Small variant of the dashboard-style button used in compact teacher controls */
+.teacher-control-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.18);
+}
+
+/* (header-export removed; export button now lives beside the 'Curso' label) */
+
+.recommendations-section {
+  margin-top: 22px;
+
+  .recommendation-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 12px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      color: #2c3e50;
+    }
+
+    .rec-disclaimer {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .rec-suggestions ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .rec-json {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      overflow: auto;
+    }
+  }
+}

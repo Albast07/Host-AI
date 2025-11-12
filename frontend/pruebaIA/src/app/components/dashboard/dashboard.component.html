@@ -16,9 +16,23 @@
       <p *ngIf="isTeacher()">Análisis emocional de tus estudiantes asignados</p>
     </div>
     <div class="header-actions">
-      <!-- Export PDF only visible to teachers -->
-      <!-- Reuse existing logout button style so it matches the dashboard's primary action buttons -->
-      <button *ngIf="isTeacher()" class="logout-btn dashboard-style" (click)="exportPdf()">Exportar a PDF</button>
+      <!-- header actions left intentionally minimal; export moved to navbar -->
+    </div>
+    
+    <!-- Asistencia para el profesor: pedir recomendaciones por curso -->
+    <div *ngIf="isTeacher()" class="teacher-recommendation-controls">
+      <ng-container *ngIf="courses && courses.length > 0; else noCourses">
+        <!-- Export button placed to the left of the 'Curso' label as requested -->
+        <button class="logout-btn dashboard-style teacher-control-btn" (click)="exportPdf()">Exportar a PDF</button>
+        <label for="courseSelect">Curso:</label>
+        <select id="courseSelect" [(ngModel)]="selectedCourseId" (change)="loadCourseRecommendations(selectedCourseId)">
+          <option *ngFor="let c of courses" [value]="c.id">{{ c.name || c.title || ('Curso ' + c.id) }}</option>
+        </select>
+        <button class="logout-btn dashboard-style teacher-control-btn" (click)="requestRecommendation()" [disabled]="isRequestingRecommendation || !selectedCourseId">{{ isRequestingRecommendation ? 'Solicitando...' : 'Solicitar sugerencia' }}</button>
+      </ng-container>
+      <ng-template #noCourses>
+        <div class="no-data">No tienes cursos asignados. Pide al administrador que te asigne un curso o usa la sección de administración.</div>
+      </ng-template>
     </div>
     <!-- logout moved to navbar to avoid duplication -->
   </div>
@@ -170,6 +184,31 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    
+    <!-- Recomendaciones generadas para el curso -->
+    <div *ngIf="isTeacher()" class="recommendations-section">
+      <h2>Asistencia para el profesor</h2>
+      <div *ngIf="courseRecommendations && courseRecommendations.length > 0" class="recommendations-list">
+        <div class="recommendation-card" *ngFor="let r of courseRecommendations">
+          <h3>{{ r.overview || r.title || ('Recomendación ' + (r.id || '')) }}</h3>
+          <p class="rec-disclaimer" *ngIf="r.disclaimer">{{ r.disclaimer }}</p>
+          <div class="rec-suggestions" *ngIf="r.suggestions && r.suggestions.length > 0">
+            <h4>Sugerencias</h4>
+            <ul>
+              <li *ngFor="let s of r.suggestions">
+                <strong>{{ s.title || s.name }}:</strong> {{ s.description || s.text }}
+                <div *ngIf="s.activity">Actividad: {{ s.activity }}</div>
+                <div *ngIf="s.reference">Ref: {{ s.reference }}</div>
+              </li>
+            </ul>
+          </div>
+          <pre class="rec-json" *ngIf="!r.suggestions">{{ r | json }}</pre>
+        </div>
+      </div>
+      <div *ngIf="!courseRecommendations || courseRecommendations.length === 0" class="no-data">
+        No hay recomendaciones generadas para el curso seleccionado.
       </div>
     </div>
   </div>
