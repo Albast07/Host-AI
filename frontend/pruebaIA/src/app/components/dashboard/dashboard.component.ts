@@ -2,6 +2,7 @@
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService, DashboardData } from '../../services/api.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
@@ -11,12 +12,17 @@ import { interval, Subscription } from 'rxjs';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   dashboardData: DashboardData | null = null;
+  // Cursos y recomendaciones
+  courses: any[] = [];
+  selectedCourseId: number | null = null;
+  courseRecommendations: any[] = [];
+  isRequestingRecommendation = false;
   isLoading = false;
   errorMessage = '';
   private refreshSubscription?: Subscription;
@@ -30,11 +36,81 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadDashboardData();
+    if (this.isTeacher()) {
+      this.loadCourses();
+    }
     
     // Auto-refresh cada 30 segundos (30000 ms)
     // this.refreshSubscription = interval(30000).subscribe(() => {
     //   this.loadDashboardData();
     // });
+  }
+
+  loadCourses() {
+    this.apiService.getCourses().subscribe({
+      next: (courses: any[]) => {
+        this.courses = courses || [];
+        // Select the first course by default
+        if (this.courses.length > 0) {
+          this.selectedCourseId = this.courses[0].id;
+          this.loadCourseRecommendations(this.selectedCourseId!);
+        }
+      },
+      error: (err: any) => {
+        console.error('Error cargando cursos:', err);
+      }
+    });
+  }
+
+  loadCourseRecommendations(courseId: number | null) {
+    if (courseId == null) return;
+    this.courseRecommendations = [];
+    this.apiService.getCourseRecommendations(courseId).subscribe({
+      next: (data: any) => {
+        // API may return either:
+        // - an array of recommendation objects, or
+        // - an object with shape { course: {...}, results: [...] }
+        // Normalize to an array of recommendation objects for the template.
+        if (Array.isArray(data)) {
+          this.courseRecommendations = data;
+        } else if (data) {
+          if (data.results && Array.isArray(data.results)) {
+            this.courseRecommendations = data.results;
+          } else {
+            // Fallback: wrap single recommendation-like object
+            this.courseRecommendations = [data];
+          }
+        }
+      },
+      error: (err: any) => {
+        console.error('Error cargando recomendaciones del curso:', err);
+      }
+    });
+  }
+
+  requestRecommendation() {
+    if (!this.selectedCourseId || this.isRequestingRecommendation) return;
+    console.log('requestRecommendation() selectedCourseId=', this.selectedCourseId);
+    this.isRequestingRecommendation = true;
+    const courseIdNum = Number(this.selectedCourseId);
+    if (!courseIdNum || Number.isNaN(courseIdNum)) {
+      alert('Selecciona un curso válido antes de solicitar una sugerencia.');
+      this.isRequestingRecommendation = false;
+      return;
+    }
+    this.apiService.requestCourseRecommendation(courseIdNum).subscribe({
+      next: (rec: any) => {
+        // prepend new recommendation
+        if (rec) this.courseRecommendations.unshift(rec);
+        this.isRequestingRecommendation = false;
+      },
+      error: (err: any) => {
+        console.error('Error al solicitar recomendación:', err);
+        const message = (err && err.error && (err.error.detail || err.error.error)) || err?.message || ('HTTP ' + err?.status) || 'Error al solicitar recomendación';
+        alert('Error al solicitar recomendación: ' + message);
+        this.isRequestingRecommendation = false;
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -49,7 +125,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     this.apiService.getDashboardStats().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         try {
           // Normalize/merge any duplicate emotion keys reported by the API
           this.dashboardData = this.dashboardService.normalizeDashboardData(data as any);
@@ -60,7 +136,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error cargando dashboard:', error);
         this.errorMessage = 'Error al cargar los datos del dashboard';
         this.isLoading = false;
@@ -160,9 +236,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         a.remove();
         window.URL.revokeObjectURL(url);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error exporting PDF:', err);
-        alert('Error al exportar el PDF. Revisa la consola para más detalles.');
+        // If server returned a JSON body but as a Blob (application/json), read it and show the message
+        if (err && err.error && typeof err.error === 'object' && typeof err.error.text === 'function') {
+          err.error.text().then((txt: string) => {
+            let parsed: any = null;
+            try { parsed = JSON.parse(txt); } catch (e) { parsed = null; }
+            const serverMsg = parsed?.detail || parsed?.error || txt || `HTTP ${err.status}`;
+            alert('Error al exportar el PDF: ' + serverMsg);
+          }).catch(() => {
+            alert('Error al exportar el PDF. Revisa la consola para más detalles.');
+          });
+        } else {
+          const message = (err && err.error && (err.error.detail || err.error.error)) || err?.message || ('HTTP ' + err?.status) || 'Error al exportar el PDF';
+          alert('Error al exportar el PDF: ' + message);
+        }
       }
     });
   }

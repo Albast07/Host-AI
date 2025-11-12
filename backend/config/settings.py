@@ -32,10 +32,22 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv(
+raw_allowed_hosts = os.getenv(
     'ALLOWED_HOSTS', 
-    'localhost,127.0.0.1,classmind-b.onrender.com'
+    'localhost,127.0.0.1,host-ai.onrender.com'
 ).split(',')
+
+ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts if host.strip()]
+
+render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_host and render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_host)
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}"
+    for host in ALLOWED_HOSTS
+    if host not in ('localhost', '127.0.0.1') and not host.startswith('http')
+]
 
 # Security Settings for Production
 if not DEBUG:
@@ -118,23 +130,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-    }
-}
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         # Lee la variable DATABASE_URL del entorno de Render
-#         default=os.environ.get('DATABASE_URL')
-#     )
-# }
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
@@ -183,7 +199,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS', 
-    'http://localhost:4200,https://host-ai-sigma.vercel.app'
+    'http://localhost:4200,https://host-ai.onrender.com'
 ).split(',')
 
 # Limpiar espacios en blanco de las URLs

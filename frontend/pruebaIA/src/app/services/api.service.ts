@@ -194,6 +194,25 @@ export class ApiService {
     });
   }
 
+  // ========== Cursos y recomendaciones para profesores ==========
+  getCourses(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/courses/`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  getCourseRecommendations(courseId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/chat/courses/${courseId}/recommendations/`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  requestCourseRecommendation(courseId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/chat/courses/${courseId}/recommendations/`, {}, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
   // Export dashboard as PDF (binary blob)
   exportDashboardPdf(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/chat/dashboard/export-pdf/`, {

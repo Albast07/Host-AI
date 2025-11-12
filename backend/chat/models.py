@@ -65,3 +65,39 @@ class Message(models.Model):
 
     def __str__(self):
         return f"[{self.timestamp.strftime('%Y-%m-%d %H:%M')}] {self.sender}: {self.text[:50]}"
+
+
+class CourseEmotionRecommendation(models.Model):
+    """
+    Registro de recomendaciones generadas por IA para profesores sobre la dinámica emocional de un curso.
+    Se almacena un snapshot de las métricas utilizadas para que los educadores puedan auditar la sugerencia.
+    """
+    course = models.ForeignKey(
+        'users.Course',
+        related_name='emotion_recommendations',
+        on_delete=models.CASCADE,
+    )
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='course_emotion_recommendations',
+    )
+    triggered_emotion = models.CharField(max_length=50)
+    emotion_ratio = models.FloatField(help_text="Porcentaje de mensajes donde predominó la emoción que disparó la sugerencia.")
+    time_window_days = models.PositiveSmallIntegerField(default=7)
+    stats_snapshot = models.JSONField(default=dict, help_text="Métricas agregadas usadas para la recomendación.")
+    overview = models.TextField(help_text="Resumen pedagógico generado por la IA.")
+    suggestions = models.JSONField(help_text="Lista de sugerencias o actividades recomendadas.")
+    disclaimer = models.CharField(
+        max_length=255,
+        default="Estas recomendaciones son educativas y no reemplazan la atención psicológica profesional.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.course.code} - {self.triggered_emotion} ({self.created_at.date()})"

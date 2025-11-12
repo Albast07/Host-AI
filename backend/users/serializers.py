@@ -95,27 +95,49 @@ class ChangePasswordSerializer(serializers.Serializer):
         return attrs
 
 
-# Serializers for Course model
+# Serializador para el modelo de Course
 class CourseSerializer(serializers.ModelSerializer):
-    teacher = UserSerializer(read_only=True)
-    students = UserSerializer(many=True, read_only=True)
-
+    teacher_name = serializers.ReadOnlyField()
+    student_count = serializers.ReadOnlyField()
+    teacher_details = UserSerializer(source='teacher', read_only=True)
+    students_details = UserSerializer(source='students', many=True, read_only=True)
+    
     class Meta:
         model = Course
         fields = [
-            'id', 'name', 'code', 'description', 'teacher', 'students',
-            'start_date', 'end_date', 'is_active', 'created_at', 'updated_at'
+            'id',
+            'name',
+            'code',
+            'description',
+            'teacher',
+            'teacher_name',
+            'teacher_details',
+            'students',
+            'students_details',
+            'student_count',
+            'start_date',
+            'end_date',
+            'is_active',
+            'created_at',
+            'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+# Serializador simplificado para listar cursos
 class CourseListSerializer(serializers.ModelSerializer):
-    student_count = serializers.IntegerField(source='student_count', read_only=True)
-    teacher_name = serializers.CharField(source='teacher_name', read_only=True)
-
+    teacher_name = serializers.ReadOnlyField()
+    student_count = serializers.ReadOnlyField()
+    
     class Meta:
         model = Course
         fields = [
-            'id', 'name', 'code', 'teacher_name', 'student_count',
-            'start_date', 'end_date', 'is_active'
+            'id',
+            'name',
+            'code',
+            'teacher_name',
+            'student_count',
+            'start_date',
+            'end_date',
+            'is_active'
         ]

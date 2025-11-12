@@ -1,6 +1,8 @@
 # backend/chat/serializers.py
 from rest_framework import serializers
 
+from .models import CourseEmotionRecommendation
+
 # Serializadores de recursos de apoyo (a nivel de módulo para evitar NameError)
 class SupportTechniqueSerializer(serializers.Serializer):
     type = serializers.CharField()
@@ -72,3 +74,26 @@ class ChatResponseSerializer(serializers.Serializer):
         emotions_goemotions_primary = GoEmotionsPrimarySerializer()
 
     user_message_analysis = UserMessageAnalysisSerializer()
+
+
+class CourseEmotionRecommendationSerializer(serializers.ModelSerializer):
+    course = serializers.CharField(source='course.name', read_only=True)
+    course_id = serializers.IntegerField(source='course.id', read_only=True)
+    generated_by = serializers.CharField(source='generated_by.username', allow_null=True, read_only=True)
+
+    class Meta:
+        model = CourseEmotionRecommendation
+        fields = [
+            'id',
+            'course_id',
+            'course',
+            'triggered_emotion',
+            'emotion_ratio',
+            'time_window_days',
+            'overview',
+            'suggestions',
+            'disclaimer',
+            'stats_snapshot',
+            'created_at',
+            'generated_by',
+        ]
