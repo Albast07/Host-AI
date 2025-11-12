@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment.prod';
+// import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
+ 
+const runtimeApiUrl = (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost')
+  ? 'http://localhost:8000/api/v1'
+  : environment.apiUrl;
+
 
 export interface LoginRequest {
   username: string;
@@ -30,7 +36,8 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = `${ environment.apiUrl}/users`;
+  private baseUrl = `${runtimeApiUrl || environment.apiUrl}/users`;
+  // private baseUrl = `${ environment.apiUrl}/users`;
   private tokenKey = 'auth_token';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();

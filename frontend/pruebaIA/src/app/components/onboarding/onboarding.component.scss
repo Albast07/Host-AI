@@ -1,0 +1,70 @@
+.onboarding-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.onboarding-box {
+  width: 92%;
+  max-width: 720px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.onboarding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.onboarding-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.onboarding-header .skip {
+  background: transparent;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+}
+.onboarding-body {
+  padding: 18px 0;
+  color: #333;
+  line-height: 1.5;
+}
+.onboarding-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dots {
+  display: flex;
+  gap: 6px;
+}
+.dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e6e6e6;
+  display: inline-block;
+}
+.dots span.active {
+  background: #667eea;
+}
+.controls button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.controls button[disabled] {
+  background: #ccc;
+  cursor: not-allowed;
+}

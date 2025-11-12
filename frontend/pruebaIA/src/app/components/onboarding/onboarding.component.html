@@ -1,0 +1,22 @@
+  <div class="onboarding-backdrop">
+    <div class="onboarding-box">
+      <div class="onboarding-header">
+        <h2>{{ slides[current].title }}</h2>
+        <button class="skip" (click)="finish()">Omitir</button>
+      </div>
+
+      <div class="onboarding-body">
+        <p [innerHTML]="slides[current].body"></p>
+      </div>
+
+      <div class="onboarding-footer">
+        <div class="dots">
+          <span *ngFor="let s of slides; let i = index" [class.active]="i === current"></span>
+        </div>
+        <div class="controls">
+          <button (click)="prev()" [disabled]="current === 0">Anterior</button>
+          <button (click)="next()">{{ current === slides.length - 1 ? 'Entendido' : 'Siguiente' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>

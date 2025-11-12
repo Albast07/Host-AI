@@ -13,7 +13,13 @@
 
     <!-- Mensaje para usuarios ya autenticados -->
 
-  <form *ngIf="!authService.isAuthenticated()" (ngSubmit)="onSubmit()" class="register-form" autocomplete="off" novalidate>
+    <form
+      *ngIf="!authService.isAuthenticated()"
+      (ngSubmit)="onSubmit()"
+      class="register-form"
+      autocomplete="off"
+      novalidate
+    >
       <div class="form-group">
         <label for="username">Usuario</label>
         <input
@@ -116,28 +122,36 @@
       </div>
 
       <div class="form-actions">
-        <button 
-          type="submit" 
-          class="btn btn-primary"
-          [disabled]="isLoading"
-        >
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
           <span *ngIf="isLoading" class="loading-spinner"></span>
-          {{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}
+          {{ isLoading ? "Creando cuenta..." : "Crear Cuenta" }}
         </button>
       </div>
 
       <div class="form-footer">
-        <p>¿Ya tienes cuenta? 
-          <a href="#" (click)="goToLogin(); $event.preventDefault()" class="login-link">Inicia sesión aquí</a>
+        <p>
+          ¿Ya tienes cuenta?
+          <a
+            href="#"
+            (click)="goToLogin(); $event.preventDefault()"
+            class="login-link"
+            >Inicia sesión aquí</a
+          >
         </p>
       </div>
     </form>
 
     <!-- Messages -->
-    <div *ngIf="!authService.isAuthenticated() && errorMessage" class="message error-message">
+    <div
+      *ngIf="!authService.isAuthenticated() && errorMessage"
+      class="message error-message"
+    >
       {{ errorMessage }}
     </div>
-    <div *ngIf="!authService.isAuthenticated() && successMessage" class="message success-message">
+    <div
+      *ngIf="!authService.isAuthenticated() && successMessage"
+      class="message success-message"
+    >
       {{ successMessage }}
     </div>
   </div>

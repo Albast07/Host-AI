@@ -1,5 +1,4 @@
-// Este archivo contiene interfaces legacy que han sido movidas a api.service.ts
-// Las interfaces activas están en: src/app/services/api.service.ts
+
 
 export interface LegacyJournalEntry {
   id: number;
