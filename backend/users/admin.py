@@ -2,7 +2,27 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import CustomUser
+from .models import CustomUser, Course
+
+
+class TeacherCourseInline(admin.TabularInline):
+    """
+    Muestra los cursos que imparte un profesor directamente en la ficha del usuario.
+    Solo lectura para evitar inconsistencias al editar estudiantes desde aquí.
+    """
+    model = Course
+    fk_name = 'teacher'
+    extra = 0
+    can_delete = False
+    fields = ('code', 'name', 'start_date', 'end_date', 'is_active', 'student_count_inline')
+    readonly_fields = fields
+    show_change_link = True
+    verbose_name = 'Curso que imparte'
+    verbose_name_plural = 'Cursos que imparte'
+
+    def student_count_inline(self, obj):
+        return obj.student_count
+    student_count_inline.short_description = 'Estudiantes'
 
 
 class CustomUserAdmin(BaseUserAdmin):
@@ -75,10 +95,13 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('first_name', 'last_name', 'email', 'fecha_de_nacimiento'),
         }),
     )
-    
+
     # Selector horizontal para estudiantes
     filter_horizontal = ('students',)
-    
+
+    # Inlines dinámicos
+    inlines = [TeacherCourseInline]
+
     # Acciones masivas
     actions = ['activar_usuarios', 'desactivar_usuarios', 'convertir_a_profesores', 'convertir_a_estudiantes']
     
@@ -154,6 +177,101 @@ class CustomUserAdmin(BaseUserAdmin):
             kwargs["queryset"] = CustomUser.objects.filter(role='student')
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def get_inline_instances(self, request, obj=None):
+        """
+        Solo mostrar el inline de cursos cuando el usuario es profesor
+        para evitar crear cursos accidentalmente desde otros perfiles.
+        """
+        if not obj:
+            return []
+        inline_instances = []
+        for inline_class in self.inlines:
+            if inline_class is TeacherCourseInline and not obj.is_teacher:
+                continue
+            inline = inline_class(self.model, self.admin_site)
+            if not inline.has_view_or_change_permission(request, obj):
+                continue
+            inline_instances.append(inline)
+        return inline_instances
 
-# Registrar el modelo
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    """
+    Panel de control para cursos: permite asignar profesor, matricular estudiantes
+    y revisar métricas básicas sin salir del admin.
+    """
+    list_display = (
+        'code',
+        'name',
+        'teacher',
+        'start_date',
+        'end_date',
+        'is_active',
+        'student_count_display',
+    )
+    list_filter = (
+        'is_active',
+        'start_date',
+        'end_date',
+        'teacher',
+    )
+    search_fields = (
+        'code',
+        'name',
+        'description',
+        'teacher__username',
+        'teacher__first_name',
+        'teacher__last_name',
+    )
+    ordering = ('-start_date', 'code')
+    date_hierarchy = 'start_date'
+    autocomplete_fields = ('teacher',)
+    filter_horizontal = ('students',)
+    readonly_fields = ('student_count_display', 'created_at', 'updated_at')
+    list_select_related = ('teacher',)
+    actions = ['activar_cursos', 'desactivar_cursos']
+
+    fieldsets = (
+        ('Información del curso', {
+            'fields': ('name', 'code', 'description', 'is_active')
+        }),
+        ('Calendario', {
+            'fields': ('start_date', 'end_date')
+        }),
+        ('Participantes', {
+            'fields': ('teacher', 'students', 'student_count_display')
+        }),
+        ('Metadatos', {
+            'classes': ('collapse',),
+            'fields': ('created_at', 'updated_at')
+        })
+    )
+
+    def student_count_display(self, obj):
+        return obj.student_count
+    student_count_display.short_description = 'Total de estudiantes'
+
+    def activar_cursos(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} curso(s) activado(s).')
+    activar_cursos.short_description = 'Marcar como activos'
+
+    def desactivar_cursos(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} curso(s) desactivado(s).')
+    desactivar_cursos.short_description = 'Marcar como inactivos'
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'teacher':
+            kwargs['queryset'] = CustomUser.objects.filter(role='teacher')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'students':
+            kwargs['queryset'] = CustomUser.objects.filter(role='student')
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+# Registrar modelos
 admin.site.register(CustomUser, CustomUserAdmin)
