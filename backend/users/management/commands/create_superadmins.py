@@ -12,7 +12,7 @@ class Command(BaseCommand):
                 username='ItaloAdmin',
                 email='italo.admin2807@gmail.com',
                 password='Italo2807Admin',
-                role='teacher',
+                role='admin',
                 first_name='Italo',
                 last_name='Admin'
             )
@@ -33,5 +33,18 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('Superusuario DanielAdmin creado exitosamente'))
         else:
             self.stdout.write(self.style.WARNING('DanielAdmin ya existe'))
+
+        if not CustomUser.objects.filter(username='VictorAdmin').exists():
+            CustomUser.objects.create_superuser(
+                username='VictorAdmin',
+                email='Victor.admin2807@gmail.com',
+                password='Victor2807Admin',
+                role='admin',
+                first_name='Victor',
+                last_name='Admin'
+            )
+            self.stdout.write(self.style.SUCCESS('Superusuario VictorAdmin creado exitosamente'))
+        else:
+            self.stdout.write(self.style.WARNING('VictorAdmin ya existe'))
 
         self.stdout.write(self.style.SUCCESS('Proceso completado'))
