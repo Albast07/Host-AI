@@ -313,11 +313,6 @@ export class JournalComponent implements OnInit, AfterViewChecked {
         console.log(`📊 DEBUG: Nuevas entradas agregadas. Total entradas actuales: ${this.entries.length}`);
 
         this.isLoading = false;
-        this.successMessage = '¡Mensaje enviado!';
-        
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
       },
       error: (error: any) => {
         console.error('Error enviando mensaje:', error);

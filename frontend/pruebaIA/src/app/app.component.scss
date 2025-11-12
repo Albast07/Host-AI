@@ -1,14 +1,14 @@
-// Variables
-$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$secondary-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+// Variables (pastel, sin degradados)
+$primary-color: #4AA3A2; /* muted teal, less saturated */
+$secondary-color: #BFE8DE;
 $white: #ffffff;
 $text-color: #333;
-$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+$shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 $border-radius: 8px;
 
 // Navbar
 .navbar {
-  background: $primary-gradient;
+  background: $primary-color;
   color: $white;
   padding: 1rem 0;
   box-shadow: $shadow;
@@ -61,19 +61,20 @@ $border-radius: 8px;
 }
 
 .logout-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: $white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Inverted: white button with verdant text */
+  background: $white;
+  color: var(--color-primary);
+  border: 1px solid rgba(0,0,0,0.04);
   padding: 0.5rem 1rem;
   border-radius: $border-radius;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.12s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 28px rgba(16,32,40,0.08);
+    background: var(--surface);
   }
 
   &:active {
@@ -126,20 +127,22 @@ $border-radius: 8px;
 
 /* Dashboard-style variant for logout to ensure consistent appearance across pages */
 .logout-btn.dashboard-style {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: $white;
+  /* Match request: white background + verdant text for "Cerrar Sesión" */
+  background: $white;
+  border: 1px solid rgba(0,0,0,0.04);
+  color: var(--color-primary);
   padding: 0.75rem 1.25rem;
   border-radius: $border-radius;
   cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+  font-weight: 600;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.12s ease;
+  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 28px rgba(16,32,40,0.08);
+    background: var(--surface);
   }
 
   &:active {

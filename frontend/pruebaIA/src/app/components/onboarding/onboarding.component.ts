@@ -16,7 +16,7 @@ export class OnboardingComponent {
   slides = [
     {
       title: '¿Qué es la app?',
-      body: 'Diario Emocional IA es una herramienta educativa para ayudar a estudiantes a registrar y reflexionar sobre sus emociones. Puedes escribir entradas cortas y la IA te dará retroalimentación educativa.'
+      body: 'ClassMind es una herramienta educativa para ayudar a estudiantes a registrar y reflexionar sobre sus emociones. Puedes escribir entradas cortas y la IA te dará retroalimentación educativa.'
     },
     {
       title: 'Cómo escribir una entrada',

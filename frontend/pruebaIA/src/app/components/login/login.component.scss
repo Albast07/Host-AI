@@ -13,7 +13,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* fondo hero sólido y suave (pastel, sin degradados) */
+  background: var(--bg-hero);
   padding: 0;
   position: fixed;
   top: 0;
@@ -23,7 +24,7 @@ html, body {
 }
 
 .login-card {
-  background: white;
+  background: var(--surface);
   border-radius: 15px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   padding: 40px;
@@ -118,18 +119,18 @@ html, body {
       transition: all 0.3s ease;
       font-size: 14px;
       font-weight: 500;
-      background: #fff;
+  background: var(--surface);
       
       &:hover {
-        border-color: #667eea;
+        border-color: var(--color-primary);
         background: #f8f9ff;
       }
       
       &.active {
-        border-color: #667eea;
-        background: #667eea;
+        border-color: var(--color-primary);
+        background: var(--color-primary);
         color: white;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 14px rgba(16,32,40,0.06);
       }
     }
   }
@@ -152,8 +153,8 @@ html, body {
 }
 
 .form-group input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(122,143,181,0.08);
 }
 
 .form-group input:disabled {
@@ -182,13 +183,13 @@ html, body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-primary);
+  color: var(--surface);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 25px rgba(16,32,40,0.08);
 }
 
 .btn-primary:disabled {
@@ -223,7 +224,7 @@ html, body {
 }
 
 .register-link {
-  color: #667eea;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 500;
 }

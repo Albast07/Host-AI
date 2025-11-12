@@ -2,11 +2,19 @@
 <!-- Top navbar (full width) -->
 <header class="top-navbar">
   <div class="nav-inner">
-    <button class="mobile-journals-btn" title="Mis diarios" (click)="toggleMobileJournals()">☰</button>
-  <div class="brand desktop-brand">📖 Diario Emocional IA</div>
+    <button class="mobile-journals-btn" title="Mis diarios" (click)="toggleMobileJournals()" aria-label="Abrir diarios">
+      <!-- hamburger SVG -->
+      <!-- <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect y="0" width="20" height="2" rx="1" fill="currentColor" />
+        <rect y="6" width="20" height="2" rx="1" fill="currentColor" />
+        <rect y="12" width="20" height="2" rx="1" fill="currentColor" />
+      </svg> -->
+    </button>
+  <div class="brand desktop-brand">ClassMind</div>
+  <img src="classmind-gray.png" alt="ClassMind logo" class="nav-logo" />
   <div class="brand mobile-brand">{{ selectedConversationId ? getJournalName(selectedConversationId) : 'Mi Diario' }}</div>
     <div class="nav-actions">
-      <button class="help-btn" title="Cómo usar la app" (click)="openOnboarding()">❓</button>
+      <button class="help-btn" title="Cómo usar la app" (click)="openOnboarding()">?</button>
       <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
     </div>
   </div>
@@ -18,10 +26,21 @@
 <div class="journal-layout" [class.mobile-open]="showMobileJournals">
   <!-- Sidebar de diarios -->
   <aside class="journal-sidebar">
-    <h2>🗂️ Mis Diarios</h2>
+    <h2>
+      <!-- folder SVG -->
+      <svg width="22" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M3 4h6l2 2h10v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor" />
+      </svg>
+      Mis Diarios
+    </h2>
     <!-- Mobile-only quick create button so users can add a new diary without
          expanding any hidden controls. Visible inside the slide-in panel. -->
-  <button class="mobile-create-btn" (click)="openMobileCreate()">➕ Crear diario</button>
+  <button class="mobile-create-btn" (click)="openMobileCreate()" aria-label="Crear diario">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor" />
+    </svg>
+    Crear diario
+  </button>
     <div class="journals-list">
       <div *ngFor="let conv of conversations" class="journal-item" [class.selected]="conv.id === selectedConversationId">
         <span class="journal-title" (click)="selectConversation(conv.id)">
@@ -30,15 +49,36 @@
           </ng-container>
           <ng-template #renameInput>
             <input [(ngModel)]="renameValue" (keydown.enter)="saveRename(conv.id)" />
-            <button (click)="saveRename(conv.id)">💾</button>
-            <button (click)="cancelRename()">✖️</button>
+            <button (click)="saveRename(conv.id)" aria-label="Guardar nombre">
+              <!-- save / floppy SVG -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5 4h11l3 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor" />
+                <rect x="7" y="9" width="6" height="6" rx="1" fill="white" opacity="0.2" />
+              </svg>
+            </button>
+            <button (click)="cancelRename()" aria-label="Cancelar">
+              <!-- x / close SVG -->
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
           </ng-template>
         </span>
-        <button class="rename-btn" (click)="startRenaming(conv.id)">✏️</button>
+        <button class="rename-btn" (click)="startRenaming(conv.id)" aria-label="Renombrar diario">
+          <!-- pencil SVG -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M3 21v-3.75L14.81 5.44a1 1 0 0 1 1.41 0l2.34 2.34a1 1 0 0 1 0 1.41L6.75 21H3z" fill="currentColor" />
+          </svg>
+        </button>
       </div>
     </div>
       <div class="new-journal-form">
-        <button *ngIf="!showNewForm" (click)="openNewJournalForm()" class="open-create-btn">➕ Crear nuevo diario</button>
+        <button *ngIf="!showNewForm" (click)="openNewJournalForm()" class="open-create-btn" aria-label="Crear nuevo diario">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor" />
+          </svg>
+          Crear nuevo diario
+        </button>
         <div *ngIf="showNewForm" class="create-form">
           <input [(ngModel)]="newJournalName" placeholder="Nombre del nuevo journal" />
           <button (click)="createNewJournal()" [disabled]="isLoading || !newJournalName.trim()">Crear</button>
@@ -53,7 +93,13 @@
   <!-- Mobile create modal -->
   <div *ngIf="showMobileCreateModal" class="mobile-create-modal-overlay" (click)="closeMobileCreate()">
     <div class="mobile-create-modal" (click)="$event.stopPropagation()">
-      <h3>Crear nuevo diario</h3>
+      <h3>
+        <!-- notebook icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M4 4h16v12H8l-4 4V4z" fill="currentColor" />
+        </svg>
+        Crear nuevo diario
+      </h3>
       <input type="text" [(ngModel)]="newJournalName" placeholder="Nombre del nuevo diario" />
       <div class="modal-actions">
         <button class="create-btn" (click)="createNewJournal(); closeMobileCreate()" [disabled]="!newJournalName.trim()">Crear</button>
@@ -66,7 +112,13 @@
   <main class="chatbot-main">
     <div class="chat-header">
       <div class="chat-title">
-        <h1>💬 {{ selectedConversationId ? getJournalName(selectedConversationId) : 'Mi Diario Emocional' }}</h1>
+        <h1>
+          <!-- chat-bubble SVG -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10z" fill="currentColor" />
+          </svg>
+          {{ selectedConversationId ? getJournalName(selectedConversationId) : 'Mi Diario Emocional' }}
+        </h1>
         <p>Comparte tus pensamientos y emociones. La IA te responderá con insights útiles.</p>
       </div>
     </div>
@@ -76,8 +128,23 @@
            class="message" 
            [class.user-message]="entry.type === 'user'" 
            [class.ai-message]="entry.type === 'ai'">
-        <div class="message-avatar">
-          {{ entry.type === 'user' ? '👤' : '🤖' }}
+        <div class="message-avatar" [attr.aria-label]="entry.type === 'user' ? 'Usuario' : 'Asistente'">
+          <ng-container *ngIf="entry.type === 'user'">
+            <!-- user SVG -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="8" r="3" fill="currentColor" />
+              <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="currentColor" />
+            </svg>
+          </ng-container>
+          <ng-container *ngIf="entry.type === 'ai'">
+            <!-- assistant / robot-like SVG -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="12" rx="2" fill="currentColor" />
+              <circle cx="8" cy="9" r="1" fill="white" />
+              <circle cx="16" cy="9" r="1" fill="white" />
+              <rect x="10" y="12" width="4" height="2" rx="1" fill="white" />
+            </svg>
+          </ng-container>
         </div>
         <div class="message-content">
           <div class="message-sender" *ngIf="entry.type === 'ai' && !entry.isWelcome">
@@ -99,7 +166,12 @@
         </div>
       </div>
       <div *ngIf="entries.length === 1" class="empty-chat">
-        <div class="empty-icon">💭</div>
+        <div class="empty-icon">
+          <!-- thought / empty icon SVG -->
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 12a5 5 0 0 0-4-4.9V6a4 4 0 0 0-4-4 4 4 0 0 0-3.9 5.1A4.5 4.5 0 0 0 3 12.5c0 1.6.9 3 2.3 3.8-.1.5-.6 1.3-1 1.9 0 0 3 0 5-2 1.5 1.1 3.3 1.6 5 1.6 3.3 0 6-2.7 6-6 0-1.2-.4-2.4-1-3.4z" fill="currentColor" />
+          </svg>
+        </div>
         <h3>Aún no hay conversaciones</h3>
         <p>Envía un mensaje para comenzar tu diario emocional</p>
       </div>
@@ -145,7 +217,7 @@
   <div *ngIf="showNewForm" class="overlay" (click)="cancelNewJournalForm()"></div>
 
   <!-- Assistant suggestions floating button (students) -->
-  <div class="assistant-container">
+  <!-- <div class="assistant-container">
     <button class="logout-btn dashboard-style assistant-button" (click)="toggleAssistant()">Sugerencias</button>
 
     <div class="assistant-panel" *ngIf="showAssistant">
@@ -163,4 +235,4 @@
         <small>Basado en tus últimos mensajes y los tips del asistente.</small>
       </div>
     </div>
-  </div>
+  </div> -->

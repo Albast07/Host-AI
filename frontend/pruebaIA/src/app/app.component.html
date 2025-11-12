@@ -1,8 +1,8 @@
 <nav *ngIf="showNavbar" class="navbar">
   <div class="nav-container">
     <h1 class="nav-title">
-      <span *ngIf="!isTeacher()">📖 Diario Emocional IA</span>
-      <span *ngIf="isTeacher()">📊 Dashboard Profesor</span>
+      <span *ngIf="!isTeacher()">ClassMind</span>
+      <span *ngIf="isTeacher()">Profesores</span>
     </h1>
     <div class="nav-links">
       <a *ngIf="!isTeacher()" class="nav-mi-diario" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">

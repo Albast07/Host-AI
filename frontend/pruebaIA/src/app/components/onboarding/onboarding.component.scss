@@ -10,10 +10,10 @@
 .onboarding-box {
   width: 92%;
   max-width: 720px;
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 .onboarding-header {
   display: flex;
@@ -29,7 +29,7 @@
 .onboarding-header .skip {
   background: transparent;
   border: none;
-  color: #667eea;
+  color: var(--color-primary);
   cursor: pointer;
 }
 .onboarding-body {
@@ -54,17 +54,41 @@
   display: inline-block;
 }
 .dots span.active {
-  background: #667eea;
+  background: var(--color-primary);
 }
+
+/* Controls layout: add a bit of space between 'Anterior' and 'Siguiente' */
+.controls {
+  display: flex;
+  gap: 10px; /* small separation between buttons */
+  align-items: center;
+}
+
 .controls button {
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
   border: none;
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
 }
+
 .controls button[disabled] {
   background: #ccc;
   cursor: not-allowed;
+}
+
+/* Responsive: stack controls on small screens */
+@media (max-width: 480px) {
+  .controls {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .controls button {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
 }

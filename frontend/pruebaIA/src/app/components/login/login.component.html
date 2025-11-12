@@ -1,12 +1,12 @@
-<a class="brand" routerLink="/">Classmind</a>
+<!-- <a class="brand" routerLink="/">Classmind</a> -->
 
 <div class="login-container">
   <div class="login-card">
-    <a class="brand-inline" routerLink="/">Classmind</a>
+    <!-- <a class="brand-inline" routerLink="/">Classmind</a> -->
     <div class="login-header">
       <h1>Iniciar Sesión</h1>
       <p *ngIf="userType === 'student'">Accede a tu diario emocional</p>
-      <p *ngIf="userType === 'teacher'">Accede al dashboard de seguimiento emocional</p>
+      <p *ngIf="userType === 'teacher'">Accede al seguimiento emocional</p>
     </div>
 
     <!-- Mensaje para usuarios ya autenticados -->
@@ -14,7 +14,7 @@
   <form (ngSubmit)="onSubmit()" class="login-form" autocomplete="off">
       <!-- Toggle de tipo de usuario -->
       <div class="form-group user-type-toggle">
-        <label>Tipo de Usuario</label>
+        <!-- <label>Tipo de Usuario</label> -->
         <div class="toggle-container">
           <input 
             type="radio" 
@@ -22,6 +22,7 @@
             name="userType" 
             value="student" 
             [(ngModel)]="userType"
+            (ngModelChange)="onUserTypeChange($event)"
             [disabled]="isLoading"
           />
           <label for="student" class="toggle-label" [class.active]="userType === 'student'">
@@ -34,6 +35,7 @@
             name="userType" 
             value="teacher" 
             [(ngModel)]="userType"
+            (ngModelChange)="onUserTypeChange($event)"
             [disabled]="isLoading"
           />
           <label for="teacher" class="toggle-label" [class.active]="userType === 'teacher'">

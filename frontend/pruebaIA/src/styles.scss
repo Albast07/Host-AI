@@ -8,8 +8,30 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  color: #333;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* Usar color de texto principal de la paleta */
+  color: var(--text-primary, #0F2B2B);
+  /* Paleta basada en el logo: pastel, sólida y seria */
+  /* Muted pastel palette (less saturated / softer) */
+  --color-primary: #4AA3A2; /* muted teal */
+  --color-secondary: #C9E6E0; /* softer mint */
+  --color-accent: #EDD6C9; /* softer peach */
+
+  --bg-page: #F2F5F4; /* slightly grayer than before */
+  --bg-hero: #EAF3F2; /* muted hero panel */
+  --surface: #F6F8F7; /* slightly less bright white for surfaces */
+  --surface-bone: #FBF7F2; /* bone-white surface for emphasis (journals sidebar) */
+
+  --text-primary: #0F2B2B;
+  --text-muted: #6E7A79;
+
+  --border: #E6EFEF;
+  --shadow: 0 6px 20px rgba(16,32,40,0.06);
+
+  --success: #62B678;
+  --warning: #E0A96D;
+  --error: #E36A6A;
+
+  background: var(--bg-page);
   min-height: 100vh;
 }
 

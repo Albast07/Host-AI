@@ -40,20 +40,22 @@
   }
 
   .logout-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
+    /* white background + verdant text for logout */
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.04);
+    color: var(--color-primary);
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease, background 0.12s ease;
+    box-shadow: 0 2px 10px rgba(16,32,40,0.06);
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 4px 20px rgba(16,32,40,0.08);
+      background: var(--surface);
     }
 
     &:active {
@@ -63,13 +65,13 @@
 }
 
 /* Navbar variant for dashboard logout when navbar is present on dashboard screen */
-.top-navbar {
+  .top-navbar {
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
   height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   z-index: 100;
@@ -93,20 +95,22 @@
   }
 
   .logout-btn.dashboard-style {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
+    /* white background + verdant text for navbar logout on dashboard */
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.04);
+    color: var(--color-primary);
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    font-weight: 600;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.12s ease;
+    box-shadow: 0 6px 18px rgba(16,32,40,0.06);
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 10px 28px rgba(16,32,40,0.08);
+      background: var(--surface);
     }
 
     &:active {
@@ -119,11 +123,11 @@
   text-align: center;
   padding: 60px 20px;
   
-  .spinner {
+    .spinner {
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 20px;
@@ -157,10 +161,10 @@
 }
 
 .summary-card {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 22px rgba(16,32,40,0.06);
   display: flex;
   align-items: center;
   gap: 20px;
@@ -208,16 +212,16 @@
 }
 
 .chart-section {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 25px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 20px rgba(16,32,40,0.06);
   
   h2 {
     color: #2c3e50;
     margin-bottom: 20px;
     font-size: 1.4rem;
-    border-bottom: 2px solid #f8f9fa;
+    border-bottom: 2px solid rgba(0,0,0,0.03);
     padding-bottom: 10px;
   }
 }
@@ -386,7 +390,7 @@
     color: #2c3e50;
     margin-bottom: 20px;
     font-size: 1.5rem;
-    border-bottom: 2px solid #3498db;
+    border-bottom: 2px solid var(--color-primary);
     padding-bottom: 10px;
   }
 }
@@ -398,17 +402,17 @@
   margin-top: 20px;
 }
 
-.student-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  .student-card {
+  background: var(--color-primary);
   border-radius: 12px;
   padding: 20px;
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 15px rgba(16,32,40,0.06);
   transition: all 0.3s ease;
   
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(16,32,40,0.08);
   }
 }
 
@@ -458,21 +462,21 @@
 }
 
 // Mensaje informativo
-.info-message {
+  .info-message {
   margin-top: 20px;
   padding: 15px;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border-left: 4px solid #2196f3;
+  background: var(--bg-hero);
+  border-left: 4px solid var(--color-primary);
   border-radius: 8px;
   
   p {
     margin: 0;
-    color: #1565c0;
+    color: var(--text-primary);
     font-size: 0.95rem;
     line-height: 1.5;
     
     strong {
-      color: #0d47a1;
+      color: var(--text-primary);
     }
   }
 }
@@ -492,8 +496,8 @@
   select {
     padding: 8px 10px;
     border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    background: white;
+    border: 1px solid rgba(0,0,0,0.04);
+    background: var(--surface);
   }
 
   .primary-btn {
@@ -520,11 +524,11 @@
   margin-top: 22px;
 
   .recommendation-card {
-    background: white;
-    border-radius: 10px;
-    padding: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    margin-bottom: 12px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
+  margin-bottom: 12px;
 
     h3 {
       margin: 0 0 8px 0;

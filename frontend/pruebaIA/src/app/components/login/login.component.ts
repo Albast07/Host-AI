@@ -12,11 +12,21 @@ import { AuthService, LoginRequest } from '../../services/auth.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  loginData: LoginRequest = {
+  // Mantener credenciales separadas por tipo para evitar que los campos
+  // se rellenenn al cambiar entre Estudiante/Profesor.
+  studentLogin: LoginRequest = {
     username: '',
     password: ''
   };
-  
+
+  teacherLogin: LoginRequest = {
+    username: '',
+    password: ''
+  };
+
+  // `loginData` referencia la estructura activa (studentLogin o teacherLogin)
+  loginData: LoginRequest = this.studentLogin;
+
   userType: 'student' | 'teacher' = 'student'; // Toggle para tipo de usuario
   isLoading = false;
   errorMessage = '';
@@ -78,6 +88,14 @@ export class LoginComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  // Llamar cuando el usuario cambia el tipo (radio / toggle). Esto hace
+  // que `loginData` apunte al objeto correspondiente sin perder los valores
+  // previamente ingresados para el otro tipo.
+  onUserTypeChange(type: 'student' | 'teacher') {
+    this.userType = type;
+    this.loginData = type === 'student' ? this.studentLogin : this.teacherLogin;
   }
 
   goToRegister() {

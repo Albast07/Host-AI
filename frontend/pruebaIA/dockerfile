@@ -3,7 +3,8 @@ FROM node:20 AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Use npm ci with legacy-peer-deps to ensure deterministic install inside Docker and avoid peer dependency resolution failures
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
 COPY . .
 RUN npm run build
 

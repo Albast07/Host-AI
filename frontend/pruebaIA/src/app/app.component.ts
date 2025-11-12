@@ -12,7 +12,7 @@ import { filter } from 'rxjs/operators';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Diario Emocional IA';
+  title = 'ClassMind';
   showNavbar = true;
 
   constructor(
