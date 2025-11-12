@@ -183,7 +183,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS', 
-    'http://localhost:4200,https://host-ai-sigma.vercel.app'
+    'http://localhost:4200,https://host-ai.onrender.com'
 ).split(',')
 
 # Limpiar espacios en blanco de las URLs
