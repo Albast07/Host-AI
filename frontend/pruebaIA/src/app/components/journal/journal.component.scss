@@ -9,47 +9,45 @@
   background: var(--bg-page);
 }
 
-/* Ensure the component root doesn't create outer page scroll */
+@media (max-width: 1024px) {
+  .journal-layout { grid-template-columns: 220px 1fr; max-width: 1000px; }
+  .journal-sidebar { padding: 18px; }
+}
+
 :host {
   display: block;
-  /* subtract navbar height (80px) and main-content vertical padding (2rem top + 2rem bottom) */
   height: calc(100vh - 80px - 4rem);
   overflow: hidden;
 }
 
 .journal-sidebar {
-  /* Use a bone-white surface so journals stand out from the page background.
-    Add a subtle dividing line and a soft shadow so the panel reads as an elevated
-    surface separate from the main chat area. No gradients, just a clean border + shadow. */
-  background: var(--surface-bone);
-  border-right: 1px solid rgba(16,32,40,0.04); /* subtle divider */
+  background-color: #4AA3A2;
+  color: white;
+  border-right: 1px solid rgba(0,0,0,0.08);
   padding: 22px;
-  /* inset hairline for depth + soft outer shadow to lift the panel */
-  box-shadow: inset -1px 0 0 rgba(16,32,40,0.02), 6px 0 24px rgba(16,32,40,0.06);
-  position: relative;
+  box-shadow: inset -1px 0 0 rgba(0,0,0,0.03), 8px 0 30px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  height: 100%;
   z-index: 120;
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 0; /* stick to top of the component host area */
-  height: 100%;
-}
 
-.journal-sidebar h2 {
-  margin: 0 0 12px 0;
-  font-size: 1.2rem;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 .journals-list {
   flex: 1 1 auto;
   overflow-y: auto;
   padding-right: 6px;
-  /* ensure the list scrolls internally */
-  min-height: 0; /* allow flex child to shrink and scroll */
+  min-height: 0;
 }
 
 .journal-item {
@@ -61,25 +59,25 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.06s ease;
-}
 
-.journal-item:hover {
-  background: #f1f5ff;
-  transform: translateY(-1px);
-}
+  &:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-1px);
+  }
 
-.journal-item.selected {
-  background: var(--color-primary);
-  color: white;
+  &.selected {
+    background: white;
+    color: var(--color-primary);
+
+    .journal-title { color: inherit; }
+  }
 }
 
 .journal-title {
   flex: 1 1 auto;
   font-weight: 600;
-  color: #2c3e50;
+  color: inherit;
 }
-
-.journal-item.selected .journal-title { color: white; }
 
 .rename-btn {
   background: transparent;
@@ -94,38 +92,37 @@
   display: flex;
   gap: 8px;
   align-items: center;
+
+  input {
+    flex: 1 1 auto;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+  }
+
+  button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--color-primary);
+    border: 1px solid rgba(0,0,0,0.04);
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  }
 }
 
-/* Mobile quick create button inside the sidebar */
 .mobile-create-btn {
   display: none;
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--color-primary);
-  color: white;
+  background: #ffffff;
+  color: var(--color-primary);
   border: none;
   font-weight: 600;
   margin-bottom: 10px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
-}
-
-.new-journal-form input {
-  flex: 1 1 auto;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e6e9ef;
-}
-
-.new-journal-form button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--color-primary);
-  color: white;
-  border: 1px solid rgba(0,0,0,0.04);
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(16,32,40,0.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 .open-create-btn {
@@ -139,34 +136,23 @@
   display: flex;
   gap: 8px;
   width: 100%;
+
+  button {
+    background: #fff;
+
+    &:last-child, &.cancel-btn {
+      background: var(--surface);
+      color: #333;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+  }
 }
 
-.create-form button {
-  background: var(--color-primary);
+@media (max-width: 768px) {
+  .new-journal-form {
+    display: none;
+  }
 }
-
-.create-form button:last-child {
-  background: var(--surface);
-  color: #333;
-  border: 1px solid rgba(0,0,0,0.04);
-}
-
-.cancel-btn {
-  background: var(--surface);
-  color: #333;
-  border: 1px solid rgba(0,0,0,0.04);
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-
-/* Make cancel button non-transparent even when it's the last child */
-.create-form button.cancel-btn {
-  background: var(--surface);
-  color: #333;
-  border: 1px solid rgba(0,0,0,0.04);
-}
-
-/* Semi-transparent overlay that dims the page when the create form is open */
 .top-navbar {
   position: fixed;
   left: 0;
@@ -177,62 +163,176 @@
   display: flex;
   align-items: center;
   z-index: 100;
-}
 
-.top-navbar .nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "menu brand actions";
+    align-items: center;
+    gap: 16px;
+    min-height: 60px;
+  }
 
-/* Mobile journals button (hidden on desktop) */
-.top-navbar .mobile-journals-btn {
-  display: none;
-  background: var(--surface);
-  border: 1px solid rgba(0,0,0,0.04);
-  color: var(--color-primary);
-  padding: 8px 10px;
-  border-radius: 8px;
-  margin-right: 12px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(16,32,40,0.06);
-}
+  .mobile-journals-btn {
+    grid-area: menu;
+    display: none;
+    background: var(--surface);
+    border: 1px solid rgba(0,0,0,0.04);
+    color: var(--color-primary);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(16,32,40,0.06);
+    justify-self: start;
+  }
 
-.top-navbar .brand {
-  color: white;
-  font-weight: 800;
-  font-size: 1.6rem;
-  line-height: 1;
-  letter-spacing: 0.2px;
-}
+  .brand-container {
+    grid-area: brand;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-self: start;
+    min-width: 0;
+  }
 
-/* Logo next to the brand text */
-.top-navbar .nav-logo {
-  height: 1.1em;
-  width: auto;
-  object-fit: contain;
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 10px;
-}
+  .nav-actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-self: end;
+  }
 
-@media (max-width: 480px) {
-  .top-navbar .nav-logo {
-    height: 1em;
-    margin-left: 8px;
+  .nav-logo {
+    height: 1.1em;
+    width: auto;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+  }
+
+  .app-title {
+    color: white;
+    font-weight: 700;
+    font-size: 1.4rem;
+    line-height: 1;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .diary-separator {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+    font-size: 1.2rem;
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .diary-title {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 1.1rem;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 }
 
-/* By default hide the mobile-specific brand label; show only on small screens */
-.brand.mobile-brand { display: none; }
+@media (max-width: 768px) {
+  .top-navbar .nav-inner {
+    padding: 0 16px;
+    gap: 8px;
+    grid-template-columns: auto 1fr auto;
+  }
+  
+  .top-navbar .app-title {
+    font-size: 1.1rem;
+  }
+  
+  .top-navbar .diary-title {
+    font-size: 0.95rem;
+  }
+  
+  .top-navbar .nav-actions {
+    gap: 6px;
+  }
+  
+  .top-navbar .logout-btn {
+    padding: 8px;
+    font-size: 0.9rem;
+    min-width: 40px;
+  }
+  
+  /* Ocultar texto en móvil, mostrar solo icono */
+  .top-navbar .logout-btn .logout-text {
+    display: none;
+  }
+  
+  .top-navbar .logout-btn .logout-icon {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-navbar {
+    .nav-inner {
+      padding: 0 10px;
+      gap: 6px;
+      min-height: 56px;
+    }
+    .brand-container { gap: 4px; }
+    .app-title { font-size: 1rem; }
+    .diary-separator { font-size: 0.9rem; margin: 0 2px; }
+    .diary-title { font-size: 0.85rem; }
+    .logout-btn {
+      padding: 8px;
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
+      justify-content: center;
+    }
+    .help-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-actions { gap: 4px; }
+  }
+}
+
+@media (max-width: 360px) {
+  .top-navbar {
+    .nav-inner { grid-template-columns: auto minmax(80px, 1fr) auto; padding: 0 8px; }
+    .app-title { font-size: 0.95rem; }
+    .diary-separator { display: none; }
+    .diary-title { font-size: 0.8rem; }
+    .logout-btn {
+      padding: 6px;
+      min-width: 34px;
+      width: 34px;
+      height: 34px;
+      .logout-icon { width: 18px; height: 18px; }
+    }
+    .help-btn { width: 34px; height: 34px; font-size: 0.95rem; }
+  }
+}
+
+/* By default hide the mobile-specific brand label; now integrated in brand-container */
+/* .brand.mobile-brand { display: none; } */
 
 .top-navbar .logout-btn {
-  /* Make the logout button visually distinct from the navbar background
-     by using the surface color and primary accent for text. */
   background: var(--surface);
   color: var(--color-primary);
   border: 1px solid rgba(0,0,0,0.04);
@@ -240,6 +340,12 @@
   border-radius: 8px;
   font-weight: 600;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+
+  .logout-icon { display: none; }
 
   &:hover {
     background: #ffffff;
@@ -251,9 +357,6 @@
     transform: translateY(0) scale(0.995);
     box-shadow: 0 2px 8px rgba(16,32,40,0.06);
   }
-  
-  /* pointer and keyboard focus for better accessibility */
-  cursor: pointer;
 
   &:focus {
     outline: none;
@@ -265,33 +368,33 @@
   }
 }
 
-.overlay {
-  position: fixed;
-  top: 80px; /* directly under the navbar */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.12);
-  z-index: 50;
-}
+.top-navbar .help-btn {
+  background: var(--surface);
+  color: var(--color-primary);
+  border: 1px solid rgba(0,0,0,0.04);
+  padding: 8px 10px;
+  border-radius: 50%;
+  font-weight: 700;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 6px 16px rgba(16,32,40,0.04);
 
-/* Make sidebar and create form render above the overlay */
-.journal-sidebar, .create-form {
-  position: relative;
-  z-index: 60;
+  &:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16,32,40,0.06);
+  }
 }
 
 .chatbot-main {
   display: flex;
   flex-direction: column;
-  height: 100%; /* fill container instead of full viewport to avoid nested scrolling */
+  height: 100%;
   min-height: 0;
-}
-
-/* Ensure chat messages area scrolls internally */
-.chat-messages {
-  flex: 1 1 auto;
-  overflow-y: auto;
+  border-left: 1px solid rgba(16,32,40,0.04);
+  box-shadow: -6px 0 18px rgba(16,32,40,0.04);
+  background-clip: padding-box;
 }
 
 .chat-header {
@@ -301,6 +404,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 10;
   
   .chat-title {
     h1 {
@@ -314,8 +419,6 @@
       font-size: 0.95rem;
     }
   }
-
-  /* logout button moved to top navbar */
 }
 
 .chat-messages {
@@ -325,8 +428,10 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: 0; /* allow internal scrolling inside flex layout */
+  min-height: 0;
   -webkit-overflow-scrolling: touch;
+  position: relative;
+  z-index: 10;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -357,8 +462,10 @@
       border-radius: 18px 18px 5px 18px;
     }
     
-    .message-sender {
-      display: none;
+    .message-sender { display: none; }
+    .message-avatar {
+      background: var(--color-primary);
+      order: 2;
     }
   }
   
@@ -369,6 +476,11 @@
       background: var(--surface);
       color: #2c3e50;
       border-radius: 18px 18px 18px 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    
+    .message-avatar {
+      background: var(--surface);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
   }
@@ -383,16 +495,6 @@
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
-  
-  .user-message & {
-    background: var(--color-primary);
-    order: 2;
-  }
-  
-  .ai-message & {
-    background: var(--surface);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
 }
 
 .message-content {
@@ -446,28 +548,17 @@
   text-align: center;
   padding: 40px 20px;
   color: #a0a0a0;
-  
-  .empty-icon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-    opacity: 0.5;
-  }
-  
-  h3 {
-    margin: 0 0 8px 0;
-    color: #7f8c8d;
-  }
-  
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+  h3 { margin: 0 0 8px 0; color: #7f8c8d; }
+  p { margin: 0; font-size: 0.9rem; }
 }
 
 .chat-input-container {
   padding: 16px 20px;
   background: var(--surface);
   border-top: 1px solid rgba(0,0,0,0.04);
+  position: relative;
+  z-index: 10;
 }
 
 .typing-indicator {
@@ -520,9 +611,7 @@
     box-shadow: 0 0 0 3px rgba(122,143,181,0.08);
   }
   
-  &::placeholder {
-    color: #adb5bd;
-  }
+  &::placeholder { color: #adb5bd; }
 }
 
 .send-button {
@@ -580,97 +669,78 @@
   30% { transform: translateY(-5px); }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .top-navbar .mobile-journals-btn { display: inline-flex; }
-  .chatbot-container {
-    height: 100vh;
-    border-radius: 0;
-  }
-  
-  .message {
-    max-width: 90%;
-  }
-  
-  .chat-header {
-    padding: 16px;
-    
-    .chat-title {
-      h1 {
-        font-size: 1.5rem;
-      }
-      
-      p {
-        font-size: 0.9rem;
-      }
+  .top-navbar {
+    height: 56px;
+    .mobile-journals-btn { display: inline-flex; }
+    .nav-inner { padding: 0 16px; gap: 8px; }
+    .app-title { font-size: 1.1rem; }
+    .diary-title { font-size: 0.95rem; }
+    .nav-actions { gap: 6px; }
+    .logout-btn {
+      padding: 8px;
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .logout-text { display: none; }
+      .logout-icon { display: block; }
     }
-
-    /* Slightly reduce the navbar brand size on small screens */
-      .top-navbar .brand {
-        font-size: 1.15rem;
-      }
-      /* Swap brand content: hide desktop title, show compact diary name */
-      .brand.desktop-brand { display: none; }
-      .brand.mobile-brand { display: block; }
-  }
-  
-  .chat-messages {
-    padding: 16px;
+    .help-btn, .mobile-journals-btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
   }
 
-  /* Make the diario/chat area occupy the whole mobile viewport and remove
-     the previous host offset so there's no extra whitespace. */
-  :host {
-    height: 100vh; /* full viewport height on mobile */
-    overflow: hidden;
-  }
-
+  :host { height: 100vh; overflow: hidden; }
   .journal-layout {
     height: 100vh;
     max-width: none;
     margin: 0;
     padding: 0;
-    grid-template-columns: 1fr; /* hide sidebar area in grid flow */
+    grid-template-columns: 1fr;
   }
 
-  /* Reduce navbar height slightly on mobile to save vertical space */
-  .top-navbar { height: 56px; }
-  .top-navbar .nav-inner { padding: 0 12px; }
-
-  /* Hide journal name and description on mobile to maximize chat area */
-  .chat-header .chat-title h1,
-  .chat-header .chat-title p {
-    display: none !important;
+  .chatbot-container { height: 100vh; border-radius: 0; }
+  .chatbot-main { height: calc(100vh - 56px); padding: 0; order: 2; }
+  .message { max-width: 90%; }
+  .chat-header {
+    padding: 16px;
+    .chat-title h1, .chat-title p { display: none !important; }
   }
-
-  /* Allow chatbot main to use all remaining vertical space */
-  .chatbot-main { height: calc(100vh - 56px); padding: 0; }
-
-  /* Slightly reduce chat messages padding on small screens */
   .chat-messages { padding: 8px 12px; }
 
-  /* On small screens hide sidebar by sliding it off-canvas and reveal it
-     by translating it in when .mobile-open is set. This provides a smooth
-     slide-in animation and avoids layout reflow. */
   .journal-sidebar {
     position: fixed;
+    top: 56px;
     left: 0;
-    top: 56px; /* below reduced navbar */
-    bottom: 0;
-    width: 86%;
-    max-width: 360px;
+    width: 80%;
+    max-width: 320px;
+    height: calc(100vh - 56px);
     z-index: 160;
-  box-shadow: 2px 0 20px rgba(0,0,0,0.12);
-  background: var(--surface);
+    background: var(--color-primary);
+    color: white;
     padding: 18px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
     overflow-y: auto;
-    transform: translateX(-110%);
-    transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms;
-    will-change: transform;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
   }
 
-  .journal-layout.mobile-open .journal-sidebar {
+  .journal-layout.mobile-open .journal-sidebar { 
+    display: flex;
     transform: translateX(0);
+  }
+  .journal-layout.mobile-open .mobile-create-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: sticky;
+    top: 8px;
+    z-index: 180;
   }
 
   .mobile-overlay {
@@ -681,19 +751,8 @@
     bottom: 0;
     background: rgba(0,0,0,0.28);
     z-index: 150;
-    opacity: 1;
-    transition: opacity 200ms ease;
   }
 
-  /* show mobile create button inside sidebar when panel is visible */
-  .journal-layout.mobile-open .mobile-create-btn {
-    display: block;
-    position: sticky;
-    top: 8px;
-    z-index: 170;
-  }
-
-  /* Mobile create modal styles */
   .mobile-create-modal-overlay {
     position: fixed;
     top: 56px;
@@ -715,79 +774,36 @@
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 18px 40px rgba(0,0,0,0.12);
-  }
 
-  .mobile-create-modal h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.1rem;
-  }
-
-  .mobile-create-modal input[type="text"] {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #e6e9ef;
-    margin-bottom: 12px;
-    font-size: 1rem;
-  }
-
-  .mobile-create-modal .modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  .mobile-create-modal .create-btn {
-    background: var(--color-primary);
-    color: white;
-    border: 1px solid rgba(0,0,0,0.04);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(16,32,40,0.06);
-  }
-
-  .mobile-create-modal .cancel-btn {
-    background: var(--surface);
-    border: 1px solid rgba(0,0,0,0.04);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--text-primary);
-    box-shadow: 0 6px 14px rgba(16,32,40,0.04);
-  }
-
-  /* Responsive adjustments for mobile modal and sidebar actions */
-  @media (max-width: 768px) {
-    .mobile-create-btn, .open-create-btn, .create-btn {
-      display: block !important;
+    h3 { margin: 0 0 8px 0; font-size: 1.1rem; }
+    input[type="text"] {
       width: 100%;
-      box-sizing: border-box;
-    }
-
-    .mobile-create-modal .modal-actions {
-      flex-direction: column-reverse; /* primary action on top */
-      gap: 10px;
-      align-items: stretch;
-    }
-
-    .mobile-create-modal .create-btn,
-    .mobile-create-modal .cancel-btn {
-      width: 100%;
-    }
-
-    /* Make assistant and navbar small buttons comfortable to tap */
-    .top-navbar .help-btn,
-    .top-navbar .mobile-journals-btn {
       padding: 10px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
+      border: 1px solid #e6e9ef;
+      margin-bottom: 12px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-direction: column-reverse;
+    }
+    .create-btn, .cancel-btn { width: 100%; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    .create-btn {
+      background: var(--color-primary);
+      color: white;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .cancel-btn {
+      background: var(--surface);
+      border: 1px solid rgba(0,0,0,0.04);
+      color: var(--text-primary);
     }
   }
 }
 
-/* Dashboard-style button variant applied to the navbar logout when requested */
+/* Dashboard-style button variant */
 .top-navbar .logout-btn.dashboard-style {
-  /* white bg + verdant text */
   background: var(--surface);
   border: 1px solid rgba(0,0,0,0.04);
   color: var(--color-primary);
@@ -796,7 +812,7 @@
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
-  transition: all 0.3s ease, background 0.12s ease;
+  transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(16,32,40,0.06);
 
   &:hover {
@@ -805,117 +821,10 @@
     background: #ffffff;
   }
 
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-/* Help / onboarding button in navbar */
-.top-navbar .help-btn {
-  background: var(--surface);
-  color: var(--color-primary);
-  border: 1px solid rgba(0,0,0,0.04);
-  padding: 8px 10px;
-  border-radius: 50%;
-  font-weight: 700;
-  margin-right: 8px;
-  cursor: pointer;
-  transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.12s ease;
-  box-shadow: 0 6px 16px rgba(16,32,40,0.04);
-}
-
-.top-navbar .help-btn:hover {
-  background: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16,32,40,0.06);
-}
-
-/* Assistant floating button & panel for journal */
-.assistant-container {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-
-  /* assistant-button uses the global .logout-btn.dashboard-style styles */
-
-  .assistant-panel {
-    width: 320px;
-    max-width: 90vw;
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-    margin-bottom: 12px;
-    overflow: hidden;
-    animation: fadeInUp 180ms ease-out;
-
-    .assistant-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 14px;
-      background: var(--color-primary);
-      color: white;
-    }
-
-    .assistant-body {
-      padding: 12px 14px;
-      color: #2c3e50;
-      font-size: 0.95rem;
-
-      ul { padding-left: 1rem; margin: 0; }
-      li { margin-bottom: 10px; }
-    }
-
-    .assistant-footer {
-      padding: 8px 14px;
-      background: #f8f9fa;
-      font-size: 0.8rem;
-      color: #7f8c8d;
-    }
-
-    .close-btn {
-      background: var(--surface);
-      border: 1px solid rgba(0,0,0,0.04);
-      color: var(--color-primary);
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 8px;
-      box-shadow: 0 6px 14px rgba(16,32,40,0.04);
-    }
-  }
+  &:active { transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
   from { transform: translateY(6px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
-}
-
-/* Global dashboard-style button so floating assistant and other buttons match */
-.logout-btn.dashboard-style {
-  /* Ensure Cerrar Sesión uses white background + green text across the app */
-  background: #ffffff;
-  color: var(--color-primary);
-  border: 1px solid rgba(0,0,0,0.04);
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.12s ease;
-  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(16,32,40,0.08);
-    background: var(--surface);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
 }

@@ -1,7 +1,9 @@
 <!-- Top navbar replicated so the logout sits in the navbar with dashboard visual style -->
 <header class="top-navbar">
   <div class="nav-inner">
-    <div class="brand">📖 Classmind | Diario IA</div>
+    <a class="brand" routerLink="/">
+  <img src="assets/white-logo.png" alt="ClassMind" class="navbar-logo" />
+    </a>
     <div class="nav-actions">
       <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>
     </div>

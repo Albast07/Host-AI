@@ -64,6 +64,22 @@ body {
   animation: fadeIn 0.5s ease-in-out;
 }
 
+/* Brand logo used across the app. Use sensible default size and make it responsive. */
+.brand-logo {
+  height: 1.35rem;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (min-width: 768px) {
+  .brand-logo { height: 1.6rem; }
+}
+
+@media (min-width: 1024px) {
+  .brand-logo { height: 1.8rem; }
+}
+
 /* Utilidades */
 .text-center { text-align: center; }
 .mb-1 { margin-bottom: 0.5rem; }

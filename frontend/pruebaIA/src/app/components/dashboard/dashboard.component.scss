@@ -94,6 +94,13 @@
     letter-spacing: 0.2px;
   }
 
+  .navbar-logo {
+    height: 2rem;
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
   .logout-btn.dashboard-style {
     /* white background + verdant text for navbar logout on dashboard */
     background: #ffffff;

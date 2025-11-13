@@ -1,7 +1,11 @@
 <nav *ngIf="showNavbar" class="navbar">
   <div class="nav-container">
     <h1 class="nav-title">
-      <span *ngIf="!isTeacher()">ClassMind</span>
+      <span *ngIf="!isTeacher()">
+        <a class="brand" routerLink="/">
+          <img src="assets/classmind-color.png" alt="ClassMind" class="brand-logo" />
+        </a>
+      </span>
       <span *ngIf="isTeacher()">Profesores</span>
     </h1>
     <div class="nav-links">
