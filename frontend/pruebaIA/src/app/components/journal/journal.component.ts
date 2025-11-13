@@ -44,6 +44,20 @@ export class JournalComponent implements OnInit, AfterViewChecked {
     private router: Router
   ) {}
 
+  // Función para limpiar el texto de comillas y asteriscos
+  cleanMessageText(text: string): string {
+    if (!text) return text;
+    
+    return text
+      // Eliminar asteriscos usados para énfasis
+      .replace(/\*/g, '')
+      // Eliminar comillas dobles innecesarias
+      .replace(/"/g, '')
+      // Limpiar espacios múltiples que puedan quedar
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   ngOnInit() {
     // Add a body class so global styles can hide the page scrollbar on mobile
     try { document.body.classList.add('journal-fullscreen'); } catch(e) {}
@@ -305,7 +319,7 @@ export class JournalComponent implements OnInit, AfterViewChecked {
         // Agregar respuesta del bot a la interfaz
         this.entries.push({
           type: 'ai',
-          text: response.bot_response,
+          text: this.cleanMessageText(response.bot_response),
           timestamp: new Date(),
           originalData: response
         });
@@ -517,7 +531,7 @@ export class JournalComponent implements OnInit, AfterViewChecked {
 
           chatEntries.push({
             type: message.sender === 'user' ? 'user' : 'ai',
-            text: message.text,
+            text: message.sender === 'bot' ? this.cleanMessageText(message.text) : message.text,
             timestamp: new Date(message.timestamp),
             sentiment: message.analysis?.sentiment,
             emotions: message.analysis?.emotions,

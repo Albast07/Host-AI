@@ -19,7 +19,7 @@
     
     <div class="nav-actions">
       <button class="help-btn" title="Cómo usar la app" (click)="openOnboarding()">?</button>
-      <button class="logout-btn dashboard-style" (click)="logout()">
+      <button class="logout-btn" (click)="logout()">
         <span class="logout-text">Cerrar Sesión</span>
         <svg class="logout-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -59,26 +59,23 @@
             {{ getJournalName(conv.id) }}
           </ng-container>
           <ng-template #renameInput>
-            <input [(ngModel)]="renameValue" (keydown.enter)="saveRename(conv.id)" />
-            <button (click)="saveRename(conv.id)" aria-label="Guardar nombre">
-              <!-- save / floppy SVG -->
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M5 4h11l3 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor" />
-                <rect x="7" y="9" width="6" height="6" rx="1" fill="white" opacity="0.2" />
+            <input [(ngModel)]="renameValue" (keydown.enter)="saveRename(conv.id)" (keydown.escape)="cancelRename()" />
+            <button (click)="saveRename(conv.id)" aria-label="Guardar nombre" title="Guardar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <button (click)="cancelRename()" aria-label="Cancelar">
-              <!-- x / close SVG -->
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <button (click)="cancelRename()" aria-label="Cancelar" title="Cancelar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
           </ng-template>
         </span>
-        <button class="rename-btn" (click)="startRenaming(conv.id)" aria-label="Renombrar diario">
-          <!-- pencil SVG -->
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 21v-3.75L14.81 5.44a1 1 0 0 1 1.41 0l2.34 2.34a1 1 0 0 1 0 1.41L6.75 21H3z" fill="currentColor" />
+        <button class="rename-btn" (click)="startRenaming(conv.id)" aria-label="Renombrar diario" title="Editar nombre">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       </div>

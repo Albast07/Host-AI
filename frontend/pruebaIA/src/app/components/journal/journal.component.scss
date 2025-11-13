@@ -24,6 +24,7 @@
   background-color: #4AA3A2;
   color: white;
   border-right: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px 0 0 12px;
   padding: 22px;
   box-shadow: inset -1px 0 0 rgba(0,0,0,0.03), 8px 0 30px rgba(0,0,0,0.06);
   position: sticky;
@@ -56,7 +57,7 @@
   justify-content: space-between;
   padding: 8px 10px;
   margin-bottom: 6px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.06s ease;
 
@@ -77,14 +78,88 @@
   flex: 1 1 auto;
   font-weight: 600;
   color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.95);
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: rgba(255,255,255,0.8);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
+    }
+  }
+
+  button {
+    padding: 4px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.9);
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+
+    &:hover {
+      background: white;
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
 }
 
 .rename-btn {
-  background: transparent;
+  background: rgba(255,255,255,0.1);
   border: none;
   cursor: pointer;
-  font-size: 0.95rem;
-  margin-left: 8px;
+  padding: 4px;
+  border-radius: 8px;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+
+  &:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .new-journal-form {
@@ -126,10 +201,36 @@
 }
 
 .open-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: var(--color-primary);
   color: white;
   border: none;
-  padding: 6px 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(74, 163, 162, 0.2);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: darken(#4AA3A2, 5%);
+    box-shadow: 0 4px 12px rgba(74, 163, 162, 0.3);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(74, 163, 162, 0.2);
+  }
 }
 
 .create-form {
@@ -373,9 +474,8 @@
   color: var(--color-primary);
   border: 1px solid rgba(0,0,0,0.04);
   padding: 8px 10px;
-  border-radius: 50%;
+  border-radius: 30%;
   font-weight: 700;
-  margin-right: 8px;
   cursor: pointer;
   transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.12s ease;
   box-shadow: 0 6px 16px rgba(16,32,40,0.04);
@@ -395,6 +495,8 @@
   border-left: 1px solid rgba(16,32,40,0.04);
   box-shadow: -6px 0 18px rgba(16,32,40,0.04);
   background-clip: padding-box;
+  border-radius: 0 12px 12px 0;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -406,6 +508,7 @@
   align-items: center;
   position: relative;
   z-index: 10;
+  border-radius: 0 12px 0 0;
   
   .chat-title {
     h1 {
@@ -459,7 +562,7 @@
     .message-content {
       background: var(--color-primary);
       color: white;
-      border-radius: 18px 18px 5px 18px;
+      border-radius: 20px 20px 6px 20px;
     }
     
     .message-sender { display: none; }
@@ -475,7 +578,7 @@
     .message-content {
       background: var(--surface);
       color: #2c3e50;
-      border-radius: 18px 18px 18px 5px;
+      border-radius: 20px 20px 20px 6px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
     
@@ -530,7 +633,7 @@
   .sentiment-badge {
     color: white;
     padding: 4px 10px;
-    border-radius: 12px;
+    border-radius: 16px;
     font-size: 0.7rem;
     font-weight: 600;
   }
@@ -538,7 +641,7 @@
   .emotion-icon {
     background: #f8f9fa;
     padding: 4px 10px;
-    border-radius: 12px;
+    border-radius: 16px;
     font-size: 0.8rem;
     color: #495057;
   }
@@ -597,7 +700,7 @@
 .message-input {
   flex: 1;
   border: 2px solid #eaeaea;
-  border-radius: 24px;
+  border-radius: 28px;
   padding: 12px 18px;
   font-family: inherit;
   font-size: 0.95rem;
