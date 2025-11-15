@@ -4,12 +4,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
-// import { environment } from '../../environments/environment.prod';
-import { environment } from '../../environments/environment';
+ import { environment } from '../../environments/environment.prod';
+//import { environment } from '../../environments/environment';
  
-const runtimeApiUrl = (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost')
-  ? 'http://localhost:8000/api/v1'
-  : environment.apiUrl;
+// const runtimeApiUrl = (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost')
+//  ? 'http://localhost:8000/api/v1'
+//  : environment.apiUrl;
 
 export interface ChatMessage {
   id: number;
@@ -94,7 +94,7 @@ export interface DashboardData {
 })
 export class ApiService {
   // private baseUrl = environment.apiUrl;
-  private baseUrl = runtimeApiUrl || environment.apiUrl;
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
