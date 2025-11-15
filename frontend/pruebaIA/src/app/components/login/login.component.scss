@@ -13,7 +13,6 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* fondo hero sólido y suave (pastel, sin degradados) */
   background: var(--bg-hero);
   padding: 0;
   position: fixed;
@@ -21,6 +20,21 @@ html, body {
   left: 0;
   z-index: 0;
   overflow: auto;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/img/trippy-background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.15;
+    z-index: -1;
+  }
 }
 
 .login-card {

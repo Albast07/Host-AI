@@ -6,7 +6,11 @@
           <img src="assets/classmind-color.png" alt="ClassMind" class="brand-logo" />
         </a>
       </span>
-      <span *ngIf="isTeacher()">Profesores</span>
+      <span *ngIf="isTeacher()">
+        <a class="brand" routerLink="/dashboard">
+          <img src="assets/img/white-logo.png" alt="ClassMind" class="brand-logo" />
+        </a>
+      </span>
     </h1>
     <!-- <div class="nav-links">
       <a *ngIf="!isTeacher()" class="nav-mi-diario" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">

@@ -220,6 +220,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    console.error('Error cargando imagen:', img.src);
+    console.error('Ruta completa intentada:', img.src);
+    console.error('Event:', event);
+  }
+
+  onImageLoad(event: Event) {
+    const img = event.target as HTMLImageElement;
+    console.log('Imagen cargada exitosamente:', img.src);
+    console.log('Dimensiones:', img.naturalWidth, 'x', img.naturalHeight);
+  }
+
   exportPdf() {
     if (!this.isTeacher()) return;
 

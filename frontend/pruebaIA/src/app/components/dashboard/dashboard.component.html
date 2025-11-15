@@ -2,7 +2,13 @@
 <header class="top-navbar">
   <div class="nav-inner">
     <a class="brand" routerLink="/">
-  <img src="assets/white-logo.png" alt="ClassMind" class="navbar-logo" />
+      <img 
+        src="img/classmind-white.png" 
+        alt="ClassMind" 
+        class="navbar-logo"
+        (error)="onImageError($event)"
+        (load)="onImageLoad($event)"
+      />
     </a>
     <div class="nav-actions">
       <button class="logout-btn dashboard-style" (click)="logout()">Cerrar Sesión</button>

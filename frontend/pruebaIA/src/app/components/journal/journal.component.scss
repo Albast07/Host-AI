@@ -309,12 +309,16 @@
   }
 
   .nav-logo {
-    height: 1.1em;
+    height: 3.5rem;
     width: auto;
     object-fit: contain;
     display: inline-block;
     vertical-align: middle;
-    margin-left: 10px;
+    margin-right: 8px;
+
+    @media (max-width: 768px) {
+      height: 2.5rem;
+    }
   }
 
   .app-title {
@@ -359,7 +363,7 @@
   }
   
   .top-navbar .diary-title {
-    font-size: 0.95rem;
+    font-size: 1.25rem;
   }
   
   .top-navbar .nav-actions {
