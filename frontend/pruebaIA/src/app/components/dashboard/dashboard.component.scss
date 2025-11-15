@@ -6,13 +6,10 @@
 }
 
 .dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
   
   .header-content {
-    text-align: left;
+    text-align: center;
     
     h1 {
       color: #2c3e50;
@@ -64,8 +61,93 @@
   }
 }
 
+/* Estilos para controles y recomendaciones del profesor */
+.teacher-recommendation-controls {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+
+  label {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  select {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.04);
+    background: var(--surface);
+  }
+
+  .primary-btn {
+    background: #2f9cf0;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    
+    button, select {
+      width: 100%;
+    }
+  }
+}
+
+/* Small variant of the dashboard-style button used in compact teacher controls */
+.teacher-control-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.18);
+}
+
+/* (header-export removed; export button now lives beside the 'Curso' label) */
+
+.recommendations-section {
+  margin-top: 22px;
+
+  .recommendation-card {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
+  margin-bottom: 12px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      color: #2c3e50;
+    }
+
+    .rec-disclaimer {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    .rec-suggestions ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .rec-json {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      overflow: auto;
+    }
+  }
+}
+
 /* Navbar variant for dashboard logout when navbar is present on dashboard screen */
-  .top-navbar {
+.top-navbar {
   position: fixed;
   left: 0;
   right: 0;
@@ -102,7 +184,6 @@
   }
 
   .logout-btn.dashboard-style {
-    /* white background + verdant text for navbar logout on dashboard */
     background: #ffffff;
     border: 1px solid rgba(0,0,0,0.04);
     color: var(--color-primary);
@@ -130,7 +211,7 @@
   text-align: center;
   padding: 60px 20px;
   
-    .spinner {
+  .spinner {
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
@@ -162,9 +243,13 @@
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .summary-card {
@@ -356,14 +441,9 @@
   }
 }
 
-// Responsive
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 15px;
-  }
-  
-  .summary-cards {
-    grid-template-columns: 1fr;
   }
   
   .charts-container {
@@ -389,7 +469,6 @@
   margin: 10px 0;
 }
 
-// Estilos para la sección de estudiantes (profesores)
 .students-section {
   margin-top: 30px;
   
@@ -409,7 +488,7 @@
   margin-top: 20px;
 }
 
-  .student-card {
+.student-card {
   background: var(--color-primary);
   border-radius: 12px;
   padding: 20px;
@@ -468,8 +547,7 @@
   }
 }
 
-// Mensaje informativo
-  .info-message {
+.info-message {
   margin-top: 20px;
   padding: 15px;
   background: var(--bg-hero);
@@ -484,81 +562,6 @@
     
     strong {
       color: var(--text-primary);
-    }
-  }
-}
-
-/* Estilos para controles y recomendaciones del profesor */
-.teacher-recommendation-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-
-  label {
-    font-weight: 600;
-    color: #2c3e50;
-  }
-
-  select {
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.04);
-    background: var(--surface);
-  }
-
-  .primary-btn {
-    background: #2f9cf0;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-}
-
-/* Small variant of the dashboard-style button used in compact teacher controls */
-.teacher-control-btn {
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.18);
-}
-
-/* (header-export removed; export button now lives beside the 'Curso' label) */
-
-.recommendations-section {
-  margin-top: 22px;
-
-  .recommendation-card {
-  background: var(--surface);
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 6px 18px rgba(16,32,40,0.06);
-  margin-bottom: 12px;
-
-    h3 {
-      margin: 0 0 8px 0;
-      color: #2c3e50;
-    }
-
-    .rec-disclaimer {
-      font-size: 0.9rem;
-      color: #7f8c8d;
-      margin-bottom: 8px;
-      font-style: italic;
-    }
-
-    .rec-suggestions ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .rec-json {
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 6px;
-      overflow: auto;
     }
   }
 }

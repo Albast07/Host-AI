@@ -13,12 +13,9 @@
 <div class="dashboard-container">
   <div class="dashboard-header">
     <div class="header-content">
-      <h1>📊 Dashboard de Seguimiento Emocional</h1>
+      <h1>Dashboard de Seguimiento</h1>
       <p *ngIf="!isTeacher()">Resumen de tu estado emocional</p>
       <p *ngIf="isTeacher()">Análisis emocional de tus estudiantes asignados</p>
-    </div>
-    <div class="header-actions">
-      <!-- header actions left intentionally minimal; export moved to navbar -->
     </div>
     
     <!-- Asistencia para el profesor: pedir recomendaciones por curso -->
@@ -36,7 +33,6 @@
         <div class="no-data">No tienes cursos asignados. Pide al administrador que te asigne un curso o usa la sección de administración.</div>
       </ng-template>
     </div>
-    <!-- logout moved to navbar to avoid duplication -->
   </div>
 
   <div class="loading-spinner" *ngIf="isLoading">
@@ -52,7 +48,7 @@
     <!-- Resumen General -->
     <div class="summary-cards">
       <div class="summary-card">
-        <div class="card-icon">👥</div>
+        <!-- <div class="card-icon">👥</div> -->
         <div class="card-content">
           <h3>{{ dashboardData.total_users || 0 }}</h3>
           <p *ngIf="!isTeacher()">Usuario Activo</p>
@@ -61,7 +57,7 @@
       </div>
 
       <div class="summary-card">
-        <div class="card-icon">📝</div>
+        <!-- <div class="card-icon">📝</div> -->
         <div class="card-content">
           <h3>{{ dashboardData.total_entries || 0 }}</h3>
           <p *ngIf="!isTeacher()">Tus Mensajes</p>
@@ -78,7 +74,7 @@
       </div>
 
       <div class="summary-card">
-        <div class="card-icon">📅</div>
+        <!-- <div class="card-icon">📅</div> -->
         <div class="card-content">
           <h3>{{ dashboardData.entries_last_week }}</h3>
           <p>Entradas esta semana</p>
@@ -158,27 +154,27 @@
 
     <!-- Sección específica para profesores: Estadísticas por estudiante -->
     <div class="students-section" *ngIf="hasStudentData()">
-      <h2>🎓 Estudiantes Asignados</h2>
+      <h2>Estudiantes Asignados</h2>
       <div class="students-grid">
         <div class="student-card" *ngFor="let student of dashboardData.users_stats">
           <div class="student-header">
-            <span class="student-icon">🎓</span>
+            <!-- <span class="student-icon">🎓</span> -->
             <span class="student-name">{{ getDisplayName(student) }}</span>
           </div>
           <div class="student-stats">
             <div class="stat-item">
-              <span class="stat-label">📝 Mensajes enviados:</span>
+              <span class="stat-label">Mensajes enviados:</span>
               <span class="stat-value">{{ student.entries_count }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">😊 Estado emocional:</span>
+              <span class="stat-label">Estado emocional:</span>
               <span class="stat-value">
                 {{ getSentimentEmoji(student.dominant_sentiment) }}
                 {{ getSentimentLabel(student.dominant_sentiment) }}
               </span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">🎭 Emoción principal:</span>
+              <span class="stat-label">Emoción principal:</span>
               <span class="stat-value">
                 {{ getEmotionIcon(student.dominant_emotion) }}
                 {{ student.dominant_emotion }}
