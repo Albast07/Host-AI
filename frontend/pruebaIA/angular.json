@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "pruebaIA": {
+    "ClassMind": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -79,10 +79,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "pruebaIA:build:production"
+              "buildTarget": "ClassMind:build:production"
             },
             "development": {
-              "buildTarget": "pruebaIA:build:development"
+              "buildTarget": "ClassMind:build:development"
             }
           },
           "defaultConfiguration": "development"

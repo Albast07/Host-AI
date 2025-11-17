@@ -1,6 +1,6 @@
 {
-  "name": "pruebaIA",
-  "short_name": "pruebaIA",
+  "name": "ClassMind",
+  "short_name": "ClassMind",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
